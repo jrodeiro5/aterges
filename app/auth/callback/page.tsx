@@ -1,1 +1,165 @@
-'use client';\n\nimport { useEffect, useState } from 'react';\nimport { useRouter, useSearchParams } from 'next/navigation';\nimport { createClient } from '@supabase/supabase-js';\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';\nimport { Button } from '@/components/ui/button';\nimport { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';\nimport { toast } from 'sonner';\n\nconst supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;\nconst supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;\n\nexport default function AuthCallbackPage() {\n  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');\n  const [message, setMessage] = useState('');\n  const router = useRouter();\n  const searchParams = useSearchParams();\n\n  useEffect(() => {\n    const handleAuthCallback = async () => {\n      try {\n        const supabase = createClient(supabaseUrl, supabaseAnonKey);\n        \n        // Get the code from URL parameters\n        const code = searchParams.get('code');\n        const error = searchParams.get('error');\n        const error_description = searchParams.get('error_description');\n\n        if (error) {\n          console.error('Auth callback error:', error, error_description);\n          setStatus('error');\n          setMessage(error_description || 'Error during authentication');\n          return;\n        }\n\n        if (code) {\n          // Exchange the code for a session\n          const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);\n          \n          if (sessionError) {\n            console.error('Session exchange error:', sessionError);\n            setStatus('error');\n            setMessage('Failed to confirm email. Please try again.');\n            return;\n          }\n\n          if (data.session && data.user) {\n            console.log('Email confirmation successful:', data.user.email);\n            setStatus('success');\n            setMessage('Email confirmed successfully! Redirecting to dashboard...');\n            \n            // Show success message\n            toast.success('¡Email confirmado! Bienvenido a Aterges AI');\n            \n            // Redirect to dashboard after a short delay\n            setTimeout(() => {\n              router.push('/app/dashboard');\n            }, 2000);\n          } else {\n            setStatus('error');\n            setMessage('No session created after email confirmation');\n          }\n        } else {\n          setStatus('error');\n          setMessage('No confirmation code found in URL');\n        }\n      } catch (error) {\n        console.error('Auth callback error:', error);\n        setStatus('error');\n        setMessage('An unexpected error occurred during email confirmation');\n      }\n    };\n\n    handleAuthCallback();\n  }, [searchParams, router]);\n\n  const handleRetry = () => {\n    router.push('/login');\n  };\n\n  const handleGoToDashboard = () => {\n    router.push('/app/dashboard');\n  };\n\n  return (\n    <div className=\"min-h-screen flex items-center justify-center bg-background p-4\">\n      <Card className=\"w-full max-w-md\">\n        <CardHeader className=\"text-center\">\n          <div className=\"mx-auto mb-4 w-12 h-12 rounded-full flex items-center justify-center\">\n            {status === 'loading' && (\n              <div className=\"bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center\">\n                <Loader2 className=\"w-6 h-6 text-blue-600 animate-spin\" />\n              </div>\n            )}\n            {status === 'success' && (\n              <div className=\"bg-green-100 w-12 h-12 rounded-full flex items-center justify-center\">\n                <CheckCircle className=\"w-6 h-6 text-green-600\" />\n              </div>\n            )}\n            {status === 'error' && (\n              <div className=\"bg-red-100 w-12 h-12 rounded-full flex items-center justify-center\">\n                <AlertCircle className=\"w-6 h-6 text-red-600\" />\n              </div>\n            )}\n          </div>\n          \n          <CardTitle className=\"text-2xl font-bold\">\n            {status === 'loading' && 'Confirmando Email...'}\n            {status === 'success' && '¡Email Confirmado!'}\n            {status === 'error' && 'Error de Confirmación'}\n          </CardTitle>\n          \n          <CardDescription>\n            {status === 'loading' && 'Por favor espera mientras confirmamos tu email'}\n            {status === 'success' && 'Tu cuenta ha sido activada exitosamente'}\n            {status === 'error' && 'Hubo un problema confirmando tu email'}\n          </CardDescription>\n        </CardHeader>\n        \n        <CardContent className=\"space-y-4\">\n          <div className=\"text-center\">\n            <p className=\"text-sm text-muted-foreground\">\n              {message}\n            </p>\n          </div>\n          \n          {status === 'success' && (\n            <div className=\"space-y-2\">\n              <p className=\"text-sm text-center text-muted-foreground\">\n                Serás redirigido automáticamente en unos segundos...\n              </p>\n              <Button onClick={handleGoToDashboard} className=\"w-full\">\n                Ir al Dashboard\n              </Button>\n            </div>\n          )}\n          \n          {status === 'error' && (\n            <div className=\"space-y-2\">\n              <Button onClick={handleRetry} className=\"w-full\">\n                Intentar Iniciar Sesión\n              </Button>\n              <Button \n                variant=\"outline\" \n                className=\"w-full\" \n                onClick={() => router.push('/signup')}\n              >\n                Crear Nueva Cuenta\n              </Button>\n            </div>\n          )}\n          \n          {status === 'loading' && (\n            <div className=\"text-center\">\n              <div className=\"animate-pulse\">\n                <div className=\"h-4 bg-muted rounded w-3/4 mx-auto\"></div>\n              </div>\n            </div>\n          )}\n        </CardContent>\n      </Card>\n    </div>\n  );\n}\n
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export default function AuthCallbackPage() {
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [message, setMessage] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        
+        // Get the code from URL parameters
+        const code = searchParams.get('code');
+        const error = searchParams.get('error');
+        const error_description = searchParams.get('error_description');
+
+        if (error) {
+          console.error('Auth callback error:', error, error_description);
+          setStatus('error');
+          setMessage(error_description || 'Error during authentication');
+          return;
+        }
+
+        if (code) {
+          // Exchange the code for a session
+          const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (sessionError) {
+            console.error('Session exchange error:', sessionError);
+            setStatus('error');
+            setMessage('Failed to confirm email. Please try again.');
+            return;
+          }
+
+          if (data.session && data.user) {
+            console.log('Email confirmation successful:', data.user.email);
+            setStatus('success');
+            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            
+            // Show success message
+            toast.success('¡Email confirmado! Bienvenido a Aterges AI');
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              router.push('/app/dashboard');
+            }, 2000);
+          } else {
+            setStatus('error');
+            setMessage('No session created after email confirmation');
+          }
+        } else {
+          setStatus('error');
+          setMessage('No confirmation code found in URL');
+        }
+      } catch (error) {
+        console.error('Auth callback error:', error);
+        setStatus('error');
+        setMessage('An unexpected error occurred during email confirmation');
+      }
+    };
+
+    handleAuthCallback();
+  }, [searchParams, router]);
+
+  const handleRetry = () => {
+    router.push('/login');
+  };
+
+  const handleGoToDashboard = () => {
+    router.push('/app/dashboard');
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 w-12 h-12 rounded-full flex items-center justify-center">
+            {status === 'loading' && (
+              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+              </div>
+            )}
+            {status === 'success' && (
+              <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            )}
+            {status === 'error' && (
+              <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+            )}
+          </div>
+          
+          <CardTitle className="text-2xl font-bold">
+            {status === 'loading' && 'Confirmando Email...'}
+            {status === 'success' && '¡Email Confirmado!'}
+            {status === 'error' && 'Error de Confirmación'}
+          </CardTitle>
+          
+          <CardDescription>
+            {status === 'loading' && 'Por favor espera mientras confirmamos tu email'}
+            {status === 'success' && 'Tu cuenta ha sido activada exitosamente'}
+            {status === 'error' && 'Hubo un problema confirmando tu email'}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              {message}
+            </p>
+          </div>
+          
+          {status === 'success' && (
+            <div className="space-y-2">
+              <p className="text-sm text-center text-muted-foreground">
+                Serás redirigido automáticamente en unos segundos...
+              </p>
+              <Button onClick={handleGoToDashboard} className="w-full">
+                Ir al Dashboard
+              </Button>
+            </div>
+          )}
+          
+          {status === 'error' && (
+            <div className="space-y-2">
+              <Button onClick={handleRetry} className="w-full">
+                Intentar Iniciar Sesión
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => router.push('/signup')}
+              >
+                Crear Nueva Cuenta
+              </Button>
+            </div>
+          )}
+          
+          {status === 'loading' && (
+            <div className="text-center">
+              <div className="animate-pulse">
+                <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
