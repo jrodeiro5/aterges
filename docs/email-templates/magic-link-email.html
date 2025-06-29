@@ -15,7 +15,7 @@
         }
         
         body {
-            font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
             color: #374151;
             background-color: #f9fafb;
@@ -41,14 +41,6 @@
             
             .header {
                 background: linear-gradient(135deg, #065f46 0%, #047857 100%) !important;
-            }
-            
-            .logo-light {
-                display: none !important;
-            }
-            
-            .logo-dark {
-                display: block !important;
             }
             
             .content {
@@ -85,6 +77,10 @@
             
             .alternative-link p {
                 color: #d1d5db !important;
+            }
+
+            .alternative-link {
+                border-top-color: #4b5563 !important;
             }
             
             .alternative-link code {
@@ -138,21 +134,13 @@
             text-align: center;
         }
         
-        /* Logo handling for light/dark modes */
-        .logo-light {
+        /* Logo - Simplified and Enhanced */
+        .logo {
             max-width: 240px;
             height: auto;
-            margin-bottom: 16px;
-            display: block;
-            filter: brightness(0) invert(1); /* Makes black logo white */
-        }
-        
-        .logo-dark {
-            max-width: 240px;
-            height: auto;
-            margin-bottom: 16px;
-            display: none; /* Hidden by default, shown in dark mode */
-            filter: none; /* Keep original black logo */
+            display: block; /* Makes the image a block element */
+            margin: 0 auto 16px; /* Centers the logo horizontally and adds margin below */
+            filter: brightness(0) invert(1); /* Makes black logo white for dark header */
         }
         
         .header-title {
@@ -161,12 +149,14 @@
             font-weight: 700;
             margin: 0;
             letter-spacing: -0.025em;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .header-subtitle {
             color: #a7f3d0;
             font-size: 16px;
             margin: 8px 0 0 0;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         /* Content */
@@ -179,6 +169,7 @@
             font-weight: 600;
             color: #1f2937;
             margin-bottom: 24px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .message {
@@ -186,6 +177,7 @@
             color: #4b5563;
             margin-bottom: 32px;
             line-height: 1.7;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         /* CTA Button */
@@ -208,6 +200,7 @@
             box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
             border: none;
             cursor: pointer;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .cta-button:hover {
@@ -231,12 +224,14 @@
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 8px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .security-notice p {
             color: #6b7280;
             font-size: 14px;
             margin: 0;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         /* Info notice */
@@ -253,12 +248,14 @@
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 8px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .info-notice p {
             color: #6b7280;
             font-size: 14px;
             margin: 0;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         /* Alternative link */
@@ -272,13 +269,14 @@
             font-size: 14px;
             color: #6b7280;
             margin-bottom: 12px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .alternative-link code {
             background-color: #f3f4f6;
             padding: 12px;
             border-radius: 4px;
-            font-family: 'Geist Mono', 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-family: 'Geist Mono', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
             font-size: 13px;
             color: #1f2937;
             word-break: break-all;
@@ -299,6 +297,7 @@
             color: #6b7280;
             font-size: 14px;
             margin-bottom: 16px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .footer-links {
@@ -310,6 +309,7 @@
             text-decoration: none;
             font-size: 14px;
             margin: 0 12px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .footer-links a:hover {
@@ -320,6 +320,7 @@
             color: #9ca3af;
             font-size: 12px;
             margin-top: 16px;
+            font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         /* Responsive design */
@@ -353,8 +354,7 @@
                 display: inline-block !important;
             }
             
-            .logo-light, 
-            .logo-dark {
+            .logo {
                 max-width: 200px !important;
             }
         }
@@ -418,8 +418,7 @@
         /* High DPI display support */
         @media screen and (-webkit-min-device-pixel-ratio: 2),
                screen and (min-resolution: 192dpi) {
-            .logo-light,
-            .logo-dark {
+            .logo {
                 image-rendering: -webkit-optimize-contrast;
                 image-rendering: crisp-edges;
             }
@@ -430,15 +429,10 @@
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <!-- Logo for light mode (inverted to white) -->
+            <!-- Simplified logo with proper centering -->
             <img src="https://aterges.vercel.app/aterges_logo-removebg-preview.png" 
                  alt="Aterges AI" 
-                 class="logo-light">
-            
-            <!-- Logo for dark mode (original black) -->
-            <img src="https://aterges.vercel.app/aterges_logo-removebg-preview.png" 
-                 alt="Aterges AI" 
-                 class="logo-dark">
+                 class="logo">
             
             <h1 class="header-title">Tu Enlace de Acceso</h1>
             <p class="header-subtitle">Acceso rápido sin contraseña</p>
