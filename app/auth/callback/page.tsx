@@ -15,6 +15,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [debugInfo, setDebugInfo] = useState<string>('');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -23,10 +24,19 @@ function AuthCallbackContent() {
       try {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         
+        // Debug: Log all URL parameters
+        const allParams = Array.from(searchParams.entries());
+        const debugString = `URL Params: ${JSON.stringify(Object.fromEntries(allParams))}`;
+        console.log('Auth callback debug:', debugString);
+        setDebugInfo(debugString);
+        
         // Get the code from URL parameters
         const code = searchParams.get('code');
         const error = searchParams.get('error');
         const error_description = searchParams.get('error_description');
+
+        // Debug: Check what we got
+        console.log('Auth callback params:', { code, error, error_description });
 
         if (error) {
           console.error('Auth callback error:', error, error_description);
@@ -36,6 +46,8 @@ function AuthCallbackContent() {
         }
 
         if (code) {
+          console.log('Found code, attempting to exchange for session...');
+          
           // Exchange the code for a session
           const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
           
@@ -63,6 +75,10 @@ function AuthCallbackContent() {
             setMessage('No session created after email confirmation');
           }
         } else {
+          // Check if this might be a direct access without confirmation
+          const currentUrl = window.location.href;
+          console.log('No code found. Current URL:', currentUrl);
+          
           setStatus('error');
           setMessage('No confirmation code found in URL');
         }
@@ -82,6 +98,12 @@ function AuthCallbackContent() {
 
   const handleGoToDashboard = () => {
     router.push('/app/dashboard');
+  };
+
+  const handleDebugInfo = () => {
+    const currentUrl = window.location.href;
+    const hash = window.location.hash;
+    alert(`Debug Info:\nCurrent URL: ${currentUrl}\nHash: ${hash}\nSearch Params: ${debugInfo}`);
   };
 
   return (
@@ -148,6 +170,14 @@ function AuthCallbackContent() {
                 onClick={() => router.push('/signup')}
               >
                 Crear Nueva Cuenta
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="w-full text-xs"
+                onClick={handleDebugInfo}
+              >
+                Mostrar Info de Debug
               </Button>
             </div>
           )}

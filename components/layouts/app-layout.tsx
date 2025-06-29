@@ -17,7 +17,7 @@ import {
   MessageSquare,
   Database
 } from 'lucide-react';
-import { authService, User } from '@/lib/auth';
+import { useSupabaseAuth, AuthUser } from '@/lib/auth-supabase-fixed';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
@@ -52,36 +52,21 @@ const navigation = [
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  
+  // Use Supabase auth instead of old auth service
+  const { user, loading, signOut } = useSupabaseAuth();
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        if (!currentUser) {
-          router.push('/login');
-          return;
-        }
-        setUser(currentUser);
-      } catch (error) {
-        router.push('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
-    loadUser();
-  }, [router]);
-
-  const handleLogout = () => {
-    authService.logout();
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse flex items-center space-x-2">
@@ -216,7 +201,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleLogout}
+                onClick={signOut}
                 className="text-muted-foreground hover:text-foreground shrink-0"
                 title="Cerrar Sesión"
               >
