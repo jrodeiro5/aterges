@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aterges AI Email Templates - Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .demo-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .theme-toggle {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .theme-button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-button:hover {
+            background: #0056D6;
+            transform: translateY(-1px);
+        }
+        
+        .theme-button.active {
+            background: #34C759;
+        }
+        
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .template-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .template-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        
+        .template-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .template-header.red {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        .template-header.green {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .template-header h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        
+        .template-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .template-preview {
+            height: 400px;
+            border: none;
+            width: 100%;
+            background: white;
+        }
+        
+        .template-info {
+            padding: 20px;
+        }
+        
+        .template-info h4 {
+            margin: 0 0 10px 0;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        .template-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 0 0;
+        }
+        
+        .features-list li {
+            padding: 4px 0;
+            color: #059669;
+            font-size: 13px;
+        }
+        
+        .features-list li:before {
+            content: "✅ ";
+            margin-right: 6px;
+        }
+        
+        .demo-footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-footer h3 {
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        
+        .demo-footer p {
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            line-height: 1.6;
+        }
+        
+        .implementation-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .implementation-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Dark mode simulation */
+        .dark-mode {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+        
+        .dark-mode .template-card {
+            background: #374151;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dark-mode .template-info h4 {
+            color: #f9fafb;
+        }
+        
+        .dark-mode .template-info p {
+            color: #d1d5db;
+        }
+        
+        .dark-mode .demo-footer {
+            background: #374151;
+        }
+        
+        .dark-mode .demo-footer h3 {
+            color: #f9fafb;
+        }
+        
+        .dark-mode .demo-footer p {
+            color: #d1d5db;
+        }
+        
+        @media (max-width: 768px) {
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-header h1 {
+                font-size: 2em;
+            }
+            
+            .template-preview {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎨 Aterges AI Email Templates</h1>
+            <p>Professional, responsive, and dark-mode compatible email templates</p>
+        </div>
+        
+        <div class="theme-toggle">
+            <button class="theme-button active" onclick="setTheme('light')" id="lightBtn">☀️ Light Mode</button>
+            <button class="theme-button" onclick="setTheme('dark')" id="darkBtn">🌙 Dark Mode</button>
+        </div>
+        
+        <div class="templates-grid">
+            <div class="template-card">
+                <div class="template-header">
+                    <h3>✉️ Email Confirmation</h3>
+                    <p>Welcome & Account Activation</p>
+                </div>
+                <iframe class="template-preview" src="confirmation-email.html"></iframe>
+                <div class="template-info">
+                    <h4>Signup Confirmation</h4>
+                    <p>Welcomes new users and guides them through email verification with your brand styling.</p>
+                    <ul class="features-list">
+                        <li>Welcome message with feature highlights</li>
+                        <li>Clear confirmation button</li>
+                        <li>Security information</li>
+                        <li>Alternative text link</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="template-card">
+                <div class="template-header red">
+                    <h3>🔒 Password Reset</h3>
+                    <p>Security & Password Recovery</p>
+                </div>
+                <iframe class="template-preview" src="password-reset-email.html"></iframe>
+                <div class="template-info">
+                    <h4>Password Reset</h4>
+                    <p>Security-focused design that guides users through password recovery safely.</p>
+                    <ul class="features-list">
+                        <li>Security-focused messaging</li>
+                        <li>Clear reset instructions</li>
+                        <li>Warning for unauthorized requests</li>
+                        <li>Time-limited validity notice</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="template-card">
+                <div class="template-header green">
+                    <h3>🔗 Magic Link</h3>
+                    <p>Passwordless Login</p>
+                </div>
+                <iframe class="template-preview" src="magic-link-email.html"></iframe>
+                <div class="template-info">
+                    <h4>Magic Link Access</h4>
+                    <p>Modern passwordless authentication with educational content about magic links.</p>
+                    <ul class="features-list">
+                        <li>Quick access without passwords</li>
+                        <li>Educational magic link explanation</li>
+                        <li>Time-limited for security</li>
+                        <li>Alternative login options</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-footer">
+            <h3>🚀 Ready to Implement?</h3>
+            <p>
+                These templates provide a professional, branded email experience that automatically adapts to light and dark modes, works on all devices, and maintains your brand consistency throughout the user journey.
+            </p>
+            <a href="IMPLEMENTATION.md" class="implementation-link">
+                📋 Implementation Guide
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        function setTheme(theme) {
+            const body = document.body;
+            const lightBtn = document.getElementById('lightBtn');
+            const darkBtn = document.getElementById('darkBtn');
+            
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                lightBtn.classList.remove('active');
+                darkBtn.classList.add('active');
+                
+                // Update iframe themes (simplified for demo)
+                const iframes = document.querySelectorAll('.template-preview');
+                iframes.forEach(iframe => {
+                    iframe.style.filter = 'invert(1) hue-rotate(180deg)';
+                });
+            } else {
+                body.classList.remove('dark-mode');
+                lightBtn.classList.add('active');
+                darkBtn.classList.remove('active');
+                
+                // Reset iframe themes
+                const iframes = document.querySelectorAll('.template-preview');
+                iframes.forEach(iframe => {
+                    iframe.style.filter = 'none';
+                });
+            }
+        }
+        
+        // Auto-detect system theme preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
+        }
+        
+        // Listen for theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            setTheme(e.matches ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html>

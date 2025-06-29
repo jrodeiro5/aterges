@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>Confirma tu cuenta - Aterges AI</title>
     <style>
         /* Reset and base styles */
@@ -17,6 +19,98 @@
             line-height: 1.6;
             color: #374151;
             background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            min-width: 100%;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1f2937 !important;
+                color: #f3f4f6 !important;
+            }
+            
+            .email-container {
+                background-color: #374151 !important;
+                border: 1px solid #4b5563 !important;
+            }
+            
+            .header {
+                background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+            }
+            
+            .logo-light {
+                display: none !important;
+            }
+            
+            .logo-dark {
+                display: block !important;
+            }
+            
+            .content {
+                color: #f3f4f6 !important;
+            }
+            
+            .greeting {
+                color: #f9fafb !important;
+            }
+            
+            .message {
+                color: #d1d5db !important;
+            }
+            
+            .security-notice {
+                background-color: #1f2937 !important;
+                border-left-color: #60a5fa !important;
+            }
+            
+            .security-notice h3 {
+                color: #f9fafb !important;
+            }
+            
+            .security-notice p {
+                color: #d1d5db !important;
+            }
+            
+            .alternative-link p {
+                color: #d1d5db !important;
+            }
+            
+            .alternative-link code {
+                background-color: #1f2937 !important;
+                color: #f3f4f6 !important;
+                border: 1px solid #4b5563 !important;
+            }
+            
+            .footer {
+                background-color: #1f2937 !important;
+                border-top-color: #4b5563 !important;
+            }
+            
+            .footer-text {
+                color: #d1d5db !important;
+            }
+            
+            .company-info {
+                color: #9ca3af !important;
+            }
+        }
+        
+        /* Force dark mode styles for clients that don't support prefers-color-scheme */
+        [data-ogsc] body,
+        [data-ogsb] body {
+            background-color: #1f2937 !important;
+            color: #f3f4f6 !important;
+        }
+        
+        [data-ogsc] .email-container,
+        [data-ogsb] .email-container {
+            background-color: #374151 !important;
+            border: 1px solid #4b5563 !important;
         }
         
         /* Container */
@@ -27,6 +121,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
         }
         
         /* Header */
@@ -36,10 +131,21 @@
             text-align: center;
         }
         
-        .logo {
+        /* Logo handling for light/dark modes */
+        .logo-light {
             max-width: 240px;
             height: auto;
             margin-bottom: 16px;
+            display: block;
+            filter: brightness(0) invert(1); /* Makes black logo white */
+        }
+        
+        .logo-dark {
+            max-width: 240px;
+            height: auto;
+            margin-bottom: 16px;
+            display: none; /* Hidden by default, shown in dark mode */
+            filter: none; /* Keep original black logo */
         }
         
         .header-title {
@@ -58,7 +164,7 @@
         
         /* Content */
         .content {
-            padding: 48px 32px;
+            padding: 40px 32px;
         }
         
         .greeting {
@@ -75,7 +181,7 @@
             line-height: 1.7;
         }
         
-        /* CTA Button */
+        /* CTA Button - uses system colors for better compatibility */
         .cta-container {
             text-align: center;
             margin: 40px 0;
@@ -93,16 +199,20 @@
             letter-spacing: 0.025em;
             transition: all 0.2s ease;
             box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+            border: none;
+            cursor: pointer;
         }
         
         .cta-button:hover {
             transform: translateY(-1px);
             box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+            text-decoration: none;
+            color: #ffffff;
         }
         
         /* Security notice */
         .security-notice {
-            background-color: #f3f4f6;
+            background-color: #eff6ff;
             border-left: 4px solid #3b82f6;
             padding: 20px;
             margin: 32px 0;
@@ -137,14 +247,15 @@
         
         .alternative-link code {
             background-color: #f3f4f6;
-            padding: 8px 12px;
+            padding: 12px;
             border-radius: 4px;
-            font-family: 'Geist Mono', monospace;
+            font-family: 'Geist Mono', 'SF Mono', 'Monaco', 'Consolas', monospace;
             font-size: 13px;
             color: #1f2937;
             word-break: break-all;
             display: block;
             margin-top: 8px;
+            border: 1px solid #e5e7eb;
         }
         
         /* Footer */
@@ -182,32 +293,105 @@
             margin-top: 16px;
         }
         
-        /* Mobile responsive */
-        @media (max-width: 600px) {
+        /* Responsive design */
+        @media screen and (max-width: 600px) {
             .email-container {
-                margin: 0;
-                border-radius: 0;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                width: 100% !important;
             }
             
             .header {
-                padding: 32px 24px;
+                padding: 32px 20px !important;
             }
             
             .content {
-                padding: 32px 24px;
+                padding: 32px 20px !important;
             }
             
             .footer {
-                padding: 24px;
+                padding: 24px 20px !important;
             }
             
             .header-title {
-                font-size: 24px;
+                font-size: 24px !important;
             }
             
             .cta-button {
-                padding: 14px 24px;
-                font-size: 15px;
+                padding: 14px 24px !important;
+                font-size: 15px !important;
+                width: auto !important;
+                display: inline-block !important;
+            }
+            
+            .logo-light, 
+            .logo-dark {
+                max-width: 200px !important;
+            }
+        }
+        
+        /* Very small screens */
+        @media screen and (max-width: 480px) {
+            .header {
+                padding: 24px 16px !important;
+            }
+            
+            .content {
+                padding: 24px 16px !important;
+            }
+            
+            .footer {
+                padding: 20px 16px !important;
+            }
+            
+            .security-notice {
+                padding: 16px !important;
+                margin: 24px 0 !important;
+            }
+            
+            .footer-links a {
+                display: block !important;
+                margin: 8px 0 !important;
+            }
+        }
+        
+        /* Email client specific fixes */
+        .ExternalClass {
+            width: 100%;
+        }
+        
+        .ExternalClass,
+        .ExternalClass p,
+        .ExternalClass span,
+        .ExternalClass font,
+        .ExternalClass td,
+        .ExternalClass div {
+            line-height: 100%;
+        }
+        
+        /* Outlook fixes */
+        table {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        
+        img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+        }
+        
+        /* High DPI display support */
+        @media screen and (-webkit-min-device-pixel-ratio: 2),
+               screen and (min-resolution: 192dpi) {
+            .logo-light,
+            .logo-dark {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
             }
         }
     </style>
@@ -216,7 +400,16 @@
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <img src="https://aterges.vercel.app/aterges_logo-removebg-preview.png" alt="Aterges AI" class="logo">
+            <!-- Logo for light mode (inverted to white) -->
+            <img src="https://aterges.vercel.app/aterges_logo-removebg-preview.png" 
+                 alt="Aterges AI" 
+                 class="logo-light">
+            
+            <!-- Logo for dark mode (original black, shown when dark mode detected) -->
+            <img src="https://aterges.vercel.app/aterges_logo-removebg-preview.png" 
+                 alt="Aterges AI" 
+                 class="logo-dark">
+            
             <h1 class="header-title">¡Bienvenido a Aterges AI!</h1>
             <p class="header-subtitle">Tu plataforma de inteligencia artificial para marketing</p>
         </div>
