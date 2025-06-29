@@ -11,16 +11,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { authService } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
+import { AuthErrorDisplay } from '@/components/auth/AuthErrorDisplay';
+import { AuthError } from '@/lib/auth-utils';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [authError, setAuthError] = useState<AuthError | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setAuthError(null);
     
     if (password !== confirmPassword) {
       toast.error('Las contraseñas no coinciden');
@@ -35,15 +43,55 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      await authService.signup(email, password);
-      toast.success('¡Cuenta creada exitosamente!');
-      router.push('/app/dashboard');
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const response = await fetch(`${baseUrl}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.next_step === 'dashboard') {
+          // User can login immediately (email confirmed)
+          localStorage.setItem('token', data.token);
+          toast.success(data.message);
+          router.push('/app/dashboard');
+        } else if (data.next_step === 'confirm_email') {
+          // Show email confirmation screen
+          setNeedsConfirmation(true);
+          toast.success(data.message);
+        }
+      } else {
+        const errorData = await response.json();
+        
+        if (typeof errorData.detail === 'object') {
+          // Handle structured error response
+          setAuthError(errorData.detail as AuthError);
+        } else {
+          // Handle simple error string
+          toast.error(errorData.detail || 'Error al crear la cuenta');
+        }
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al crear la cuenta');
+      toast.error('Error de conexión. Por favor, inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show email confirmation screen if needed
+  if (needsConfirmation) {
+    return (
+      <EmailConfirmationPending 
+        email={email} 
+        onGoBack={() => setNeedsConfirmation(false)} 
+      />
+    );
+  }
 
   return (
     <PublicLayout>
@@ -56,6 +104,15 @@ export default function SignupPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {authError && (
+              <div className="mb-4">
+                <AuthErrorDisplay 
+                  error={authError} 
+                  onRetry={() => setAuthError(null)} 
+                />
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>

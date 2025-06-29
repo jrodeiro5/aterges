@@ -11,26 +11,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { authService } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Loader2, Mail, Lock } from 'lucide-react';
+import { AuthErrorDisplay } from '@/components/auth/AuthErrorDisplay';
+import { AuthError } from '@/lib/auth-utils';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<AuthError | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setAuthError(null);
     setIsLoading(true);
 
     try {
-      await authService.login(email, password);
-      toast.success('¡Bienvenido de vuelta!');
-      router.push('/app/dashboard');
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const response = await fetch(`${baseUrl}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        toast.success(data.message);
+        router.push('/app/dashboard');
+      } else {
+        const errorData = await response.json();
+        
+        if (typeof errorData.detail === 'object') {
+          // Handle structured error response
+          setAuthError(errorData.detail as AuthError);
+        } else {
+          // Handle simple error string
+          toast.error(errorData.detail || 'Error al iniciar sesión');
+        }
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al iniciar sesión');
+      toast.error('Error de conexión. Por favor, inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetryLogin = () => {
+    setAuthError(null);
   };
 
   return (
@@ -44,6 +76,15 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {authError && (
+              <div className="mb-4">
+                <AuthErrorDisplay 
+                  error={authError} 
+                  onRetry={handleRetryLogin} 
+                />
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>

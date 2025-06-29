@@ -67,7 +67,8 @@ export const getUserEmailFromError = (error: AuthError): string | null => {
 // API utility functions
 export const resendConfirmationEmail = async (email: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await fetch('/auth/resend-confirmation', {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const response = await fetch(`${baseUrl}/auth/resend-confirmation`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -92,7 +93,8 @@ export const checkUserStatus = async (email: string): Promise<{
   confirmed: boolean;
 }> => {
   try {
-    const response = await fetch('/auth/check-status', {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const response = await fetch(`${baseUrl}/auth/check-status`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
