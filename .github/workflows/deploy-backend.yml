@@ -72,7 +72,7 @@ jobs:
             --set-env-vars="DEBUG=false" \
             --set-env-vars="GOOGLE_CLOUD_PROJECT=aterges-ai" \
             --set-env-vars="GOOGLE_CLOUD_LOCATION=us-central1" \
-            --set-env-vars="CORS_ORIGINS=https://aterges.vercel.app,http://localhost:3000" \
+            --set-env-vars="CORS_ORIGINS=https://aterges.vercel.app\,http://localhost:3000" \
             --set-env-vars="SECRET_KEY=${SECRET_KEY}" \
             --set-env-vars="SUPABASE_URL=${SUPABASE_URL}" \
             --set-env-vars="SUPABASE_KEY=${SUPABASE_KEY}" \
