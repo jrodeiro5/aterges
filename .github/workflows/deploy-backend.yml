@@ -1,0 +1,130 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: aterges-ai
+  PROJECT_NUMBER: 1017653515088
+  SERVICE_NAME: aterges-backend-service
+  REGION: europe-west1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/1017653515088/locations/global/workloadIdentityPools/aterges-pool/providers/github-provider'
+          service_account: 'aterges-app-agent@aterges-ai.iam.gserviceaccount.com'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker europe-west1-docker.pkg.dev
+
+      - name: Build and Push Docker image
+        run: |-
+          docker buildx build --platform linux/amd64 -f ./backend/Dockerfile.robust -t europe-west1-docker.pkg.dev/aterges-ai/aterges-repo/aterges-backend:$GITHUB_SHA ./backend --push
+
+      - name: Deploy to Cloud Run - FIXED SECRETS FORMAT
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |-
+          # Verify secrets are set (will show *** if secret is set, or empty if not set)
+          echo "🔍 Verifying secrets are set..."
+          echo "SECRET_KEY: ${SECRET_KEY:+SET}"
+          echo "SUPABASE_URL: ${SUPABASE_URL:+SET}" 
+          echo "SUPABASE_KEY: ${SUPABASE_KEY:+SET}"
+          echo "DATABASE_URL: ${DATABASE_URL:+SET}"
+          
+          # Deploy with environment variables instead of update-secrets
+          gcloud run deploy $SERVICE_NAME \
+            --image=europe-west1-docker.pkg.dev/aterges-ai/aterges-repo/aterges-backend:$GITHUB_SHA \
+            --region=$REGION \
+            --platform=managed \
+            --allow-unauthenticated \
+            --project=aterges-ai \
+            --set-env-vars="DEBUG=false" \
+            --set-env-vars="GOOGLE_CLOUD_PROJECT=aterges-ai" \
+            --set-env-vars="GOOGLE_CLOUD_LOCATION=us-central1" \
+            --set-env-vars="CORS_ORIGINS=https://aterges.vercel.app,http://localhost:3000" \
+            --set-env-vars="SECRET_KEY=${SECRET_KEY}" \
+            --set-env-vars="SUPABASE_URL=${SUPABASE_URL}" \
+            --set-env-vars="SUPABASE_KEY=${SUPABASE_KEY}" \
+            --set-env-vars="DATABASE_URL=${DATABASE_URL}" \
+            --memory=1Gi \
+            --cpu=1 \
+            --timeout=900 \
+            --cpu-boost \
+            --max-instances=10 \
+            --min-instances=0 \
+            --port=8080
+
+      - name: Verify Deployment & Test Endpoints
+        run: |
+          URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
+          echo "🚀 Backend deployed successfully!"
+          echo "📍 Backend URL: $URL"
+          
+          # Wait for service to be ready
+          echo "⏳ Waiting for service to be ready..."
+          sleep 30
+          
+          # Test health endpoint
+          echo "🔍 Testing health endpoint..."
+          if curl -f -s "$URL/health" > /dev/null; then
+            echo "✅ Health check PASSED"
+            curl -s "$URL/health" | jq '.' || curl -s "$URL/health"
+          else
+            echo "❌ Health check FAILED"
+            echo "Checking service logs..."
+            gcloud logs read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME" --limit=20 --format="table(timestamp,severity,textPayload)"
+          fi
+          
+          # Test signup endpoint
+          echo "🔍 Testing signup endpoint..."
+          SIGNUP_RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@example.com","password":"testpass123"}' \
+            "$URL/auth/signup")
+          
+          SIGNUP_BODY=$(echo $SIGNUP_RESPONSE | sed -E 's/HTTPSTATUS\:[0-9]{3}$//')
+          SIGNUP_STATUS=$(echo $SIGNUP_RESPONSE | tr -d '\n' | sed -E 's/.*HTTPSTATUS:([0-9]{3})$/\1/')
+          
+          if [ "$SIGNUP_STATUS" -eq 200 ] || [ "$SIGNUP_STATUS" -eq 201 ]; then
+            echo "✅ Signup endpoint WORKING"
+          else
+            echo "❌ Signup endpoint returned $SIGNUP_STATUS"
+            echo "Response: $SIGNUP_BODY"
+          fi
+          
+          echo ""
+          echo "🔗 Service URLs:"
+          echo "   Health: $URL/health"
+          echo "   API Docs: $URL/docs"
+          echo "   Signup: $URL/auth/signup"

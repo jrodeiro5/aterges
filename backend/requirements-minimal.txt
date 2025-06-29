@@ -1,0 +1,20 @@
+# Minimal requirements for Phase 0 (Authentication & API)
+fastapi==0.115.11
+uvicorn[standard]==0.31.1
+python-multipart==0.0.12
+python-dotenv==1.0.1
+
+# Database and Authentication (core)
+supabase==2.9.1
+asyncpg==0.30.0
+databases[postgresql]==0.9.0
+
+# Auth dependencies
+PyJWT>=2.8.0
+bcrypt>=4.0.0
+
+# Pydantic for data validation
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Let pip resolve httpx version automatically (no conflicts)

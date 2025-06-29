@@ -1,0 +1,22 @@
+# Vercel Production Environment Variables
+# Copy these key=value pairs to import into Vercel
+
+# Frontend Public Variables (safe to expose)
+NEXT_PUBLIC_SUPABASE_URL=https://zsmnqwjeeknohsumhmlx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzbW5xd2plZWtub2hzdW1obWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNjI4MTgsImV4cCI6MjA2NjYzODgxOH0.4Fy5oNDvPOLSBqBcF6x-rAkAhL82Z4tUPwY5ixxhA6Q
+NEXT_PUBLIC_API_BASE_URL=https://aterges-backend-service-kqswfx4lva-ew.a.run.app
+
+# Server-only Variables (KEEP SECRET)
+# Replace these with your actual values from Supabase dashboard
+SUPABASE_SERVICE_ROLE_KEY=YOUR_ACTUAL_SERVICE_ROLE_KEY_HERE
+SUPABASE_JWT_SECRET=YOUR_ACTUAL_JWT_SECRET_HERE
+
+# Database Connection Strings
+POSTGRES_URL=postgres://postgres.zsmnqwjeeknohsumhmlx:8QO4fGFwWkXxiexy@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_URL_NON_POOLING=postgres://postgres.zsmnqwjeeknohsumhmlx:8QO4fGFwWkXxiexy@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+
+# Individual Database Components
+POSTGRES_HOST=db.zsmnqwjeeknohsumhmlx.supabase.co
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=8QO4fGFwWkXxiexy
+POSTGRES_DATABASE=postgres

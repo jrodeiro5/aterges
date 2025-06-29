@@ -1,0 +1,74 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'  # Also trigger on workflow changes
+  workflow_dispatch:  # Manual trigger
+
+env:
+  PROJECT_ID: aterges-ai
+  PROJECT_NUMBER: 1017653515088
+  SERVICE_NAME: aterges-backend-service
+  REGION: europe-west1
+  ARTIFACT_REGISTRY_LOCATION: europe-west1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/1017653515088/locations/global/workloadIdentityPools/aterges-pool/providers/github-provider'
+          service_account: 'aterges-app-agent@aterges-ai.iam.gserviceaccount.com'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker europe-west1-docker.pkg.dev
+
+      - name: Build and Push Docker image
+        run: |-
+          docker buildx build --platform linux/amd64 -f ./backend/Dockerfile.robust -t europe-west1-docker.pkg.dev/aterges-ai/aterges-repo/aterges-backend:$GITHUB_SHA ./backend --push
+
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy $SERVICE_NAME \
+            --image=europe-west1-docker.pkg.dev/aterges-ai/aterges-repo/aterges-backend:$GITHUB_SHA \
+            --region=$REGION \
+            --platform=managed \
+            --allow-unauthenticated \
+            --project=aterges-ai \
+            --set-env-vars "^@^DEBUG=false@SECRET_KEY=${{ secrets.SECRET_KEY }}@SUPABASE_URL=${{ secrets.SUPABASE_URL }}@SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}@DATABASE_URL=${{ secrets.DATABASE_URL }}@GOOGLE_CLOUD_PROJECT=aterges-ai@GOOGLE_CLOUD_LOCATION=us-central1@GA4_PROPERTY_ID=${{ secrets.GA4_PROPERTY_ID }}" \
+            --memory=1Gi \
+            --cpu=1 \
+            --timeout=600 \
+            --cpu-boost \
+            --max-instances=10 \
+            --min-instances=0
+
+      - name: Get Cloud Run URL
+        run: |
+          URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
+          echo "🚀 Backend deployed successfully!"
+          echo "📍 Backend URL: $URL"
+          echo "🔗 API Documentation: $URL/docs"
+          echo "❤️ Health Check: $URL/health"

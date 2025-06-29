@@ -1,0 +1,41 @@
+# Use Python 3.13 slim image
+FROM python:3.13-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+
+# Install requirements with better error handling
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt || \
+    (echo "❌ Requirements installation failed" && cat requirements.txt && exit 1)
+
+# Copy application code
+COPY . .
+
+# Make startup script executable
+RUN chmod +x start.sh
+
+# Create startup script that uses robust main
+RUN echo '#!/bin/bash\nset -e\nPORT=${PORT:-8000}\necho "🚀 Starting Aterges Backend (Robust) on port $PORT"\necho "Environment check:"\necho "  - Python version: $(python --version)"\necho "  - Working directory: $(pwd)"\necho "  - Port: $PORT"\necho "  - Environment variables:"\necho "    * DEBUG: ${DEBUG:-not_set}"\necho "    * SUPABASE_URL: ${SUPABASE_URL:+set} ${SUPABASE_URL:-not_set}"\necho "    * DATABASE_URL: ${DATABASE_URL:+set} ${DATABASE_URL:-not_set}"\necho "    * SECRET_KEY: ${SECRET_KEY:+set} ${SECRET_KEY:-not_set}"\necho "    * GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-not_set}"\necho "Testing Python imports:"\npython -c "import fastapi, uvicorn; print(\"✅ FastAPI and Uvicorn imported successfully\")" || {\n    echo "❌ Failed to import required packages"\n    exit 1\n}\necho "🚀 Executing: uvicorn main_robust:app --host 0.0.0.0 --port $PORT --log-level info"\nexec uvicorn main_robust:app --host 0.0.0.0 --port $PORT --log-level info' > start_robust.sh
+
+RUN chmod +x start_robust.sh
+
+# Create non-root user
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port (will be set by Cloud Run via PORT env var)
+EXPOSE 8080
+
+# Run the robust application
+CMD ["./start_robust.sh"]

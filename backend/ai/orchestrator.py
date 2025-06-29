@@ -1,0 +1,352 @@
+"""
+AI Orchestrator for Aterges Platform
+Handles tool calling workflow with Google Gemini and data agents
+"""
+
+import json
+import logging
+from typing import Dict, Any, List, Optional, Union
+from datetime import datetime, timedelta
+import asyncio
+
+# Google Vertex AI imports
+import vertexai
+from vertexai.generative_models import GenerativeModel, Tool, FunctionDeclaration, Part
+from vertexai.generative_models import FinishReason
+import vertexai.preview.generative_models as generative_models
+
+# Import our agents
+from agents.base_agent import BaseAgent
+from agents.google_analytics_agent import GoogleAnalyticsAgent
+
+logger = logging.getLogger(__name__)
+
+class AIOrchestrator:
+    """
+    Core AI Orchestrator for Aterges Platform
+    Manages the conversation flow between user, LLM, and data agents
+    """
+    
+    def __init__(self, project_id: str, location: str = "us-central1"):
+        """Initialize the AI Orchestrator"""
+        self.project_id = project_id
+        self.location = location
+        self.model_name = "gemini-1.5-pro"
+        
+        # Initialize Vertex AI
+        vertexai.init(project=project_id, location=location)
+        
+        # Initialize the model
+        self.model = GenerativeModel(self.model_name)
+        
+        # Initialize agents
+        self.agents = self._initialize_agents()
+        
+        # Create tools for function calling
+        self.tools = self._create_tools()
+        
+        logger.info(f"AI Orchestrator initialized with {len(self.agents)} agents")
+    
+    def _initialize_agents(self) -> Dict[str, BaseAgent]:
+        """Initialize all available agents"""
+        agents = {}
+        
+        # Google Analytics Agent
+        try:
+            ga_agent = GoogleAnalyticsAgent()
+            agents['google_analytics'] = ga_agent
+            logger.info("Google Analytics Agent initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize Google Analytics Agent: {e}")
+        
+        return agents
+    
+    def _create_tools(self) -> List[Tool]:
+        """Create Vertex AI tools from available agents"""
+        function_declarations = []
+        
+        # Google Analytics Agent functions
+        if 'google_analytics' in self.agents:
+            # Get GA4 report
+            function_declarations.append(
+                FunctionDeclaration(
+                    name="get_ga4_report",
+                    description="Get Google Analytics 4 data for website metrics like sessions, pageviews, users, etc.",
+                    parameters={
+                        "type": "object",
+                        "properties": {
+                            "start_date": {
+                                "type": "string",
+                                "description": "Start date in YYYY-MM-DD format"
+                            },
+                            "end_date": {
+                                "type": "string", 
+                                "description": "End date in YYYY-MM-DD format"
+                            },
+                            "dimensions": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "List of dimensions like ['date', 'country', 'pagePath']"
+                            },
+                            "metrics": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "description": "List of metrics like ['sessions', 'pageviews', 'users']"
+                            }
+                        },
+                        "required": ["start_date", "end_date"]
+                    }
+                )
+            )
+            
+            # Get top pages
+            function_declarations.append(
+                FunctionDeclaration(
+                    name="get_top_pages",
+                    description="Get the most popular pages from Google Analytics",
+                    parameters={
+                        "type": "object",
+                        "properties": {
+                            "start_date": {
+                                "type": "string",
+                                "description": "Start date in YYYY-MM-DD format"
+                            },
+                            "end_date": {
+                                "type": "string",
+                                "description": "End date in YYYY-MM-DD format"
+                            },
+                            "limit": {
+                                "type": "integer",
+                                "description": "Number of top pages to return (default: 10)"
+                            }
+                        },
+                        "required": ["start_date", "end_date"]
+                    }
+                )
+            )
+            
+            # Get traffic sources
+            function_declarations.append(
+                FunctionDeclaration(
+                    name="get_traffic_sources",
+                    description="Get traffic source data from Google Analytics (organic, direct, referral, etc.)",
+                    parameters={
+                        "type": "object",
+                        "properties": {
+                            "start_date": {
+                                "type": "string",
+                                "description": "Start date in YYYY-MM-DD format"
+                            },
+                            "end_date": {
+                                "type": "string",
+                                "description": "End date in YYYY-MM-DD format"
+                            }
+                        },
+                        "required": ["start_date", "end_date"]
+                    }
+                )
+            )
+        
+        tools = [Tool(function_declarations=function_declarations)] if function_declarations else []
+        logger.info(f"Created {len(function_declarations)} function declarations")
+        return tools
+    
+    def _parse_date_reference(self, user_query: str) -> tuple[str, str]:
+        """Parse natural language date references into start_date and end_date"""
+        today = datetime.now()
+        
+        # Common date patterns
+        query_lower = user_query.lower()
+        
+        if "today" in query_lower:
+            date = today.strftime("%Y-%m-%d")
+            return date, date
+        elif "yesterday" in query_lower:
+            date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            return date, date
+        elif "last week" in query_lower or "past week" in query_lower:
+            end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            start_date = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+            return start_date, end_date
+        elif "last month" in query_lower or "past month" in query_lower:
+            end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            start_date = (today - timedelta(days=30)).strftime("%Y-%m-%d")
+            return start_date, end_date
+        elif "last 7 days" in query_lower:
+            end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            start_date = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+            return start_date, end_date
+        elif "last 30 days" in query_lower:
+            end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            start_date = (today - timedelta(days=30)).strftime("%Y-%m-%d")
+            return start_date, end_date
+        else:
+            # Default to last 7 days
+            end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            start_date = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+            return start_date, end_date
+    
+    async def _execute_function_call(self, function_call) -> Dict[str, Any]:
+        """Execute a function call from the AI model"""
+        function_name = function_call.name
+        function_args = {}
+        
+        # Parse function arguments
+        for key, value in function_call.args.items():
+            function_args[key] = value
+        
+        logger.info(f"Executing function: {function_name} with args: {function_args}")
+        
+        try:
+            # Route function calls to appropriate agents
+            if function_name == "get_ga4_report":
+                if 'google_analytics' not in self.agents:
+                    return {"error": "Google Analytics agent not available"}
+                
+                return await self.agents['google_analytics'].get_ga4_report(
+                    start_date=function_args.get('start_date'),
+                    end_date=function_args.get('end_date'),
+                    dimensions=function_args.get('dimensions', ['date']),
+                    metrics=function_args.get('metrics', ['sessions', 'pageviews'])
+                )
+            
+            elif function_name == "get_top_pages":
+                if 'google_analytics' not in self.agents:
+                    return {"error": "Google Analytics agent not available"}
+                
+                return await self.agents['google_analytics'].get_top_pages(
+                    start_date=function_args.get('start_date'),
+                    end_date=function_args.get('end_date'),
+                    limit=function_args.get('limit', 10)
+                )
+            
+            elif function_name == "get_traffic_sources":
+                if 'google_analytics' not in self.agents:
+                    return {"error": "Google Analytics agent not available"}
+                
+                return await self.agents['google_analytics'].get_traffic_sources(
+                    start_date=function_args.get('start_date'),
+                    end_date=function_args.get('end_date')
+                )
+            
+            else:
+                return {"error": f"Unknown function: {function_name}"}
+                
+        except Exception as e:
+            logger.error(f"Error executing function {function_name}: {e}")
+            return {"error": f"Function execution failed: {str(e)}"}
+    
+    async def process_query(self, user_query: str, user_context: Dict[str, Any] = None) -> str:
+        """
+        Process a user query using the AI orchestrator
+        
+        Args:
+            user_query: The user's natural language query
+            user_context: Additional context about the user (email, preferences, etc.)
+            
+        Returns:
+            AI-generated response string
+        """
+        try:
+            # Create system prompt
+            system_prompt = self._create_system_prompt(user_context)
+            
+            # Start the conversation
+            chat = self.model.start_chat()
+            
+            # Send the system prompt first
+            response = chat.send_message(
+                system_prompt + "\n\nUser Query: " + user_query,
+                tools=self.tools
+            )
+            
+            # Handle function calls if any
+            max_iterations = 5  # Prevent infinite loops
+            iteration = 0
+            
+            while response.candidates[0].finish_reason == FinishReason.FUNCTION_CALL and iteration < max_iterations:
+                iteration += 1
+                logger.info(f"Processing function calls (iteration {iteration})")
+                
+                # Execute all function calls
+                function_responses = []
+                
+                for function_call in response.candidates[0].content.parts:
+                    if hasattr(function_call, 'function_call'):
+                        result = await self._execute_function_call(function_call.function_call)
+                        function_responses.append(
+                            Part.from_function_response(
+                                name=function_call.function_call.name,
+                                response=result
+                            )
+                        )
+                
+                # Send function results back to the model
+                if function_responses:
+                    response = chat.send_message(function_responses)
+            
+            # Get the final response text
+            if response.candidates and response.candidates[0].content.parts:
+                final_response = response.candidates[0].content.parts[0].text
+                logger.info("Query processing completed successfully")
+                return final_response
+            else:
+                logger.warning("No response content generated")
+                return "I apologize, but I couldn't generate a response to your query. Please try rephrasing your question."
+                
+        except Exception as e:
+            logger.error(f"Error processing query: {e}")
+            return f"I encountered an error while processing your query: {str(e)}. Please try again or contact support if the issue persists."
+    
+    def _create_system_prompt(self, user_context: Dict[str, Any] = None) -> str:
+        """Create a system prompt for the AI model"""
+        
+        user_email = user_context.get('email', 'User') if user_context else 'User'
+        
+        system_prompt = f"""You are Aterges AI, an intelligent assistant specializing in marketing analytics and business intelligence.
+
+User Context:
+- User: {user_email}
+- Platform: Aterges AI Platform
+- Capabilities: Google Analytics 4 data analysis, website performance insights
+
+Your Role:
+- Help users understand their website and marketing performance
+- Provide clear, actionable insights from Google Analytics data
+- Answer questions about traffic, user behavior, and content performance
+- Use available tools to fetch real data when needed
+
+Guidelines:
+1. Always use real data from the available tools when possible
+2. Provide clear, concise answers with specific numbers and insights
+3. If you need to fetch data, automatically determine appropriate date ranges from the user's question
+4. Format responses in a friendly, professional manner
+5. Include actionable recommendations when relevant
+6. If data is unavailable, explain why and suggest alternatives
+
+Available Tools:
+- get_ga4_report: Get general Google Analytics data
+- get_top_pages: Get most popular pages
+- get_traffic_sources: Get traffic source breakdown
+
+Remember: You can access real Google Analytics data for this user. Use the tools proactively to provide data-driven insights."""
+
+        return system_prompt
+    
+    def get_agent_status(self) -> Dict[str, Any]:
+        """Get status of all agents"""
+        status = {
+            "orchestrator": {
+                "model": self.model_name,
+                "project_id": self.project_id,
+                "location": self.location,
+                "agents_count": len(self.agents),
+                "tools_count": len(self.tools[0].function_declarations) if self.tools else 0
+            },
+            "agents": {}
+        }
+        
+        for agent_name, agent in self.agents.items():
+            status["agents"][agent_name] = agent.get_status()
+        
+        return status

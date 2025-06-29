@@ -1,0 +1,45 @@
+# Core FastAPI and Python dependencies
+fastapi==0.115.11
+uvicorn[standard]==0.31.1
+python-multipart==0.0.12
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.1
+
+# Database and Authentication
+supabase==2.9.1
+asyncpg==0.30.0
+databases[postgresql]==0.9.0
+
+# Google Cloud and AI (for Phase 1)
+google-cloud-secret-manager==2.21.1
+google-cloud-aiplatform==1.74.0
+google-cloud-bigquery==3.27.0
+vertexai>=1.38.0
+google-generativeai>=0.8.0
+google-auth==2.37.0
+
+# Data and Analytics APIs (for Phase 1 - using latest available versions)
+google-analytics-data>=0.18.0
+google-api-python-client>=2.150.0
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+
+# HTTP and Async (compatible with supabase requirements)
+httpx>=0.26,<0.28
+aiofiles==24.1.0
+
+# Development and testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+black==24.10.0
+flake8==7.1.1
+
+# Pydantic for data validation with email support
+pydantic[email]==2.10.3
+pydantic-settings==2.7.0
+
+# Additional core dependencies
+bcrypt>=4.0.0
+PyJWT>=2.8.0
+email-validator>=2.0.0
