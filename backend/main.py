@@ -173,7 +173,7 @@ async def signup(user_data: UserSignup):
     try:
         result = await auth_service.signup(user_data.email, user_data.password)
         
-        if result["email_confirmed"]:
+        if result.get("email_confirmed", False):
             # User can login immediately
             return {
                 "user": result["user"],
@@ -215,7 +215,7 @@ async def login(user_data: UserLogin):
     try:
         result = await auth_service.login(user_data.email, user_data.password)
         
-        if result["success"]:
+        if result.get("success", False):
             return {
                 "user": result["user"],
                 "token": result["token"],

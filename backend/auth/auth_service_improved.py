@@ -36,16 +36,22 @@ class AuthService:
     async def signup(self, email: str, password: str) -> Dict[str, Any]:
         """Register a new user using Supabase Auth with better UX response."""
         try:
+            logger.info(f"Attempting signup for email: {email}")
+            
             # Use Supabase's built-in authentication
             response = self.supabase.auth.sign_up({
                 "email": email,
                 "password": password
             })
             
+            logger.info(f"Supabase signup response: user={response.user is not None}, session={response.session is not None}")
+            
             if response.user is None:
+                logger.error("Supabase returned None user in signup response")
                 raise ValueError("Failed to create user account")
             
             user = response.user
+            logger.info(f"User created: id={user.id}, email={user.email}, confirmed_at={user.email_confirmed_at}")
             
             # Check if email confirmation is required
             email_confirmed = user.email_confirmed_at is not None
@@ -80,23 +86,35 @@ class AuthService:
                 }
             
         except Exception as e:
-            logger.error(f"Signup error: {e}")
+            logger.error(f"Signup error for {email}: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            
             # Check if it's a duplicate email error
             error_msg = str(e).lower()
-            if "already registered" in error_msg or "already exists" in error_msg:
+            if "already registered" in error_msg or "already exists" in error_msg or "duplicate" in error_msg:
                 raise ValueError("This email is already registered. Try logging in instead.")
-            raise ValueError(f"Failed to create user account: {str(e)}")
+            elif "invalid email" in error_msg or "email" in error_msg and "invalid" in error_msg:
+                raise ValueError("Please enter a valid email address.")
+            elif "password" in error_msg and ("weak" in error_msg or "short" in error_msg):
+                raise ValueError("Password must be at least 6 characters long.")
+            else:
+                raise ValueError(f"Failed to create user account: {str(e)}")
     
     async def login(self, email: str, password: str) -> Dict[str, Any]:
         """Authenticate user with detailed error handling for email confirmation."""
         try:
+            logger.info(f"Attempting login for email: {email}")
+            
             # Use Supabase's built-in authentication
             response = self.supabase.auth.sign_in_with_password({
                 "email": email,
                 "password": password
             })
             
+            logger.info(f"Supabase login response: user={response.user is not None}, session={response.session is not None}")
+            
             if response.user is None:
+                logger.warning(f"Login failed for {email} - no user returned")
                 # Check if user exists but isn't confirmed
                 user_status = await self.check_user_status(email)
                 if user_status["exists"] and not user_status["confirmed"]:
@@ -115,6 +133,7 @@ class AuthService:
                     }
             
             user = response.user
+            logger.info(f"Login successful for {email}: user_id={user.id}")
             
             # Create our own access token for API access
             token_data = {"sub": user.id, "email": user.email}
@@ -132,7 +151,9 @@ class AuthService:
             }
             
         except Exception as e:
-            logger.error(f"Login error: {e}")
+            logger.error(f"Login error for {email}: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            
             error_msg = str(e).lower()
             
             # Handle specific error cases
