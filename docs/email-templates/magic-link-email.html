@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu enlace de acceso - Aterges AI</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            padding: 40px 32px;
+            text-align: center;
+        }
+        
+        .logo {
+            max-width: 240px;
+            height: auto;
+            margin-bottom: 16px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .header-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+        
+        .header-subtitle {
+            color: #a7f3d0;
+            font-size: 16px;
+            margin: 8px 0 0 0;
+        }
+        
+        /* Content */
+        .content {
+            padding: 48px 32px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 24px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+        
+        /* CTA Button */
+        .cta-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.025em;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(5, 150, 105, 0.4);
+        }
+        
+        /* Security notice */
+        .security-notice {
+            background-color: #f0fdf4;
+            border-left: 4px solid #059669;
+            padding: 20px;
+            margin: 32px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .security-notice h3 {
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .security-notice p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        /* Info notice */
+        .info-notice {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 32px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-notice h3 {
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .info-notice p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        /* Alternative link */
+        .alternative-link {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .alternative-link p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+        
+        .alternative-link code {
+            background-color: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Geist Mono', monospace;
+            font-size: 13px;
+            color: #1f2937;
+            word-break: break-all;
+            display: block;
+            margin-top: 8px;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #f9fafb;
+            padding: 32px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-text {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .footer-links {
+            margin-bottom: 16px;
+        }
+        
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 12px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .company-info {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 32px 24px;
+            }
+            
+            .content {
+                padding: 32px 24px;
+            }
+            
+            .footer {
+                padding: 24px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+            
+            .cta-button {
+                padding: 14px 24px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <img src="https://aterges.vercel.app/aterges_logo-removebg-preview.png" alt="Aterges AI" class="logo">
+            <h1 class="header-title">Tu Enlace de Acceso</h1>
+            <p class="header-subtitle">Acceso rápido sin contraseña</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <h2 class="greeting">¡Hola!</h2>
+            
+            <p class="message">
+                Hemos recibido una solicitud para acceder a tu cuenta en <strong>Aterges AI</strong> sin contraseña. Utiliza el enlace mágico de abajo para iniciar sesión de forma rápida y segura.
+            </p>
+            
+            <!-- CTA Button -->
+            <div class="cta-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">
+                    🔗 Acceder a Aterges AI
+                </a>
+            </div>
+            
+            <!-- Security Notice -->
+            <div class="security-notice">
+                <h3>🔒 Información de Seguridad</h3>
+                <p>Este enlace de acceso es válido por 15 minutos y solo puede usarse una vez. Te llevará directamente a tu dashboard sin necesidad de introducir tu contraseña.</p>
+            </div>
+            
+            <!-- Info Notice -->
+            <div class="info-notice">
+                <h3>💡 ¿Qué es un Enlace Mágico?</h3>
+                <p>Es una forma segura de acceder a tu cuenta sin recordar contraseñas. Solo funciona con el email asociado a tu cuenta y expira automáticamente por seguridad.</p>
+            </div>
+            
+            <!-- Alternative Link -->
+            <div class="alternative-link">
+                <p>¿No puedes hacer clic en el botón? Copia y pega este enlace en tu navegador:</p>
+                <code>{{ .ConfirmationURL }}</code>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                <strong>¿Prefieres usar contraseña?</strong><br>
+                También puedes iniciar sesión de forma tradicional con tu email y contraseña.
+            </p>
+            
+            <div class="footer-links">
+                <a href="https://aterges.vercel.app">Visitar Aterges AI</a>
+                <a href="https://aterges.vercel.app/login">Iniciar Sesión</a>
+            </div>
+            
+            <p class="company-info">
+                © 2025 Aterges AI. Todos los derechos reservados.<br>
+                Plataforma de IA para marketing digital.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
