@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,8 @@ import { toast } from 'sonner';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export default function AuthCallbackPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const router = useRouter();
@@ -161,5 +162,42 @@ export default function AuthCallbackPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Fallback component for the Suspense boundary
+function AuthCallbackFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 w-12 h-12 rounded-full flex items-center justify-center">
+            <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center">
+              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Loading...</CardTitle>
+          <CardDescription>
+            Processing authentication callback
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Main component that wraps the content in Suspense
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<AuthCallbackFallback />}>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
