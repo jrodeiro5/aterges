@@ -24,31 +24,49 @@ function AuthCallbackContent() {
       try {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         
-        // Debug: Log all URL parameters
+        // Debug: Log all URL parameters and hash
         const allParams = Array.from(searchParams.entries());
-        const debugString = `URL Params: ${JSON.stringify(Object.fromEntries(allParams))}`;
+        const hash = window.location.hash;
+        const debugString = `URL Params: ${JSON.stringify(Object.fromEntries(allParams))}, Hash: ${hash}`;
         console.log('Auth callback debug:', debugString);
         setDebugInfo(debugString);
         
-        // Get the code from URL parameters
+        // Method 1: Check for PKCE flow (code in search params)
         const code = searchParams.get('code');
         const error = searchParams.get('error');
         const error_description = searchParams.get('error_description');
 
-        // Debug: Check what we got
-        console.log('Auth callback params:', { code, error, error_description });
+        // Method 2: Check for implicit flow (tokens in hash)
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const hashError = hashParams.get('error');
+        const hashErrorDescription = hashParams.get('error_description');
 
-        if (error) {
-          console.error('Auth callback error:', error, error_description);
+        console.log('Auth callback analysis:', { 
+          code, 
+          error, 
+          error_description,
+          accessToken: accessToken ? 'present' : 'none',
+          refreshToken: refreshToken ? 'present' : 'none',
+          hashError,
+          hashErrorDescription
+        });
+
+        // Check for errors first (either source)
+        if (error || hashError) {
+          const finalError = error || hashError;
+          const finalErrorDesc = error_description || hashErrorDescription;
+          console.error('Auth callback error:', finalError, finalErrorDesc);
           setStatus('error');
-          setMessage(error_description || 'Error during authentication');
+          setMessage(finalErrorDesc || 'Error during authentication');
           return;
         }
 
+        // Method 1: Handle PKCE flow with code
         if (code) {
-          console.log('Found code, attempting to exchange for session...');
+          console.log('Found code, attempting PKCE flow...');
           
-          // Exchange the code for a session
           const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
           
           if (sessionError) {
@@ -59,29 +77,72 @@ function AuthCallbackContent() {
           }
 
           if (data.session && data.user) {
-            console.log('Email confirmation successful:', data.user.email);
+            console.log('PKCE flow successful:', data.user.email);
             setStatus('success');
             setMessage('Email confirmed successfully! Redirecting to dashboard...');
             
-            // Show success message
             toast.success('¡Email confirmado! Bienvenido a Aterges AI');
-            
-            // Redirect to dashboard after a short delay
-            setTimeout(() => {
-              router.push('/app/dashboard');
-            }, 2000);
-          } else {
-            setStatus('error');
-            setMessage('No session created after email confirmation');
+            setTimeout(() => router.push('/app/dashboard'), 2000);
+            return;
           }
-        } else {
-          // Check if this might be a direct access without confirmation
-          const currentUrl = window.location.href;
-          console.log('No code found. Current URL:', currentUrl);
-          
-          setStatus('error');
-          setMessage('No confirmation code found in URL');
         }
+
+        // Method 2: Handle implicit flow with tokens in hash
+        if (accessToken) {
+          console.log('Found access token in hash, attempting implicit flow...');
+          
+          try {
+            // Set the session manually using the tokens from hash
+            const { data, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+
+            if (sessionError) {
+              console.error('Implicit flow session error:', sessionError);
+              setStatus('error');
+              setMessage('Failed to set session from tokens');
+              return;
+            }
+
+            if (data.session && data.user) {
+              console.log('Implicit flow successful:', data.user.email);
+              setStatus('success');
+              setMessage('Email confirmed successfully! Redirecting to dashboard...');
+              
+              toast.success('¡Email confirmado! Bienvenido a Aterges AI');
+              setTimeout(() => router.push('/app/dashboard'), 2000);
+              return;
+            }
+          } catch (error) {
+            console.error('Error handling implicit flow:', error);
+          }
+        }
+
+        // Method 3: Check if user is already logged in
+        const { data: { session }, error: getSessionError } = await supabase.auth.getSession();
+        
+        if (getSessionError) {
+          console.error('Get session error:', getSessionError);
+        }
+
+        if (session && session.user) {
+          console.log('User already has active session:', session.user.email);
+          setStatus('success');
+          setMessage('You are already logged in! Redirecting to dashboard...');
+          
+          toast.success('¡Sesión activa! Redirigiendo al dashboard...');
+          setTimeout(() => router.push('/app/dashboard'), 1000);
+          return;
+        }
+
+        // If we get here, no valid auth data was found
+        const currentUrl = window.location.href;
+        console.log('No valid auth data found. Current URL:', currentUrl);
+        
+        setStatus('error');
+        setMessage('No confirmation code or tokens found in URL. Please try the confirmation link again.');
+        
       } catch (error) {
         console.error('Auth callback error:', error);
         setStatus('error');
