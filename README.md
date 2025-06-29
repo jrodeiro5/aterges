@@ -4,7 +4,7 @@
 
 [![Status](https://img.shields.io/badge/Phase%200-Complete-brightgreen)]()
 [![Frontend](https://img.shields.io/badge/Frontend-Live%20on%20Vercel-blue)](https://aterges.vercel.app)
-[![Backend](https://img.shields.io/badge/Backend-Ready%20for%20Deployment-orange)]()
+[![Backend](https://img.shields.io/badge/Backend-Live%20on%20Cloud%20Run-green)](https://aterges-backend-service-1017653515088.europe-west1.run.app/)
 [![Database](https://img.shields.io/badge/Database-Production%20Ready-green)]()
 
 ---
@@ -16,7 +16,8 @@ Transform complex data analysis into simple conversations. Ask "Show me my top 1
 ## ⚡ **Current Status**
 
 - ✅ **Phase 0 Complete:** Authentication, Database, Frontend deployed
-- 🔄 **Phase 1 Ready:** AI Orchestrator development begins
+- ✅ **Phase 1 Complete:** AI Orchestrator with Google Analytics integration
+- 🔄 **Phase 2 Ready:** Account Settings, Integrations, Conversation History
 - 🌐 **Live Demo:** [aterges.vercel.app](https://aterges.vercel.app)
 
 ---
@@ -81,19 +82,21 @@ python main.py
 
 ## 📊 **Features**
 
-### **✅ Current (Phase 0)**
+### **✅ Current (Phase 1)**
 - **🔐 Secure Authentication** - JWT-based with Supabase
 - **💬 Chat Interface** - Modern, responsive conversation UI
+- **🤖 AI Conversations** - Live Google Gemini integration
+- **📈 Google Analytics** - "Show me my traffic trends"
 - **🎨 Beautiful Design** - Vercel-inspired with dark/light mode
 - **📱 Responsive** - Mobile-first design
 - **🛡️ Security First** - RLS, encryption, secure deployment
 
-### **🔄 Coming Next (Phase 1)**
-- **🤖 AI Conversations** - Real Google Gemini integration
-- **📈 Google Analytics** - "Show me my traffic trends"
+### **🔄 Coming Next (Phase 2)**
 - **🔍 Search Console** - "Which pages need SEO help?"
 - **🏷️ Tag Manager** - "Are my tags firing correctly?"
 - **💾 Conversation History** - Persistent chat sessions
+- **⚙️ Account Settings** - Profile and subscription management
+- **🔗 BYOK Integrations** - Bring Your Own API Keys
 
 ### **📋 Future (Phase 2+)**
 - **⚙️ Account Settings** - Profile and subscription management
@@ -111,8 +114,9 @@ python main.py
 - **Features:** Full authentication flow, responsive design
 
 ### **Backend**
-- **Development:** http://localhost:8000 (ready for cloud deployment)
-- **Target:** Google Cloud Run with GitHub Actions CI/CD
+- **Production:** https://aterges-backend-service-1017653515088.europe-west1.run.app
+- **Development:** http://localhost:8000
+- **Deployment:** Google Cloud Run with GitHub Actions CI/CD
 - **API Documentation:** Available at `/docs` endpoint
 
 ### **Database**
@@ -141,14 +145,14 @@ python main.py
 
 ## 📈 **Roadmap**
 
-### **Phase 1: Core AI Experience (Next)**
-- [ ] Google Vertex AI integration
-- [ ] GoogleAnalyticsAgent implementation
-- [ ] Tool calling workflow
-- [ ] Backend cloud deployment
-- [ ] Real-time AI conversations
+### **Phase 1: Core AI Experience (✅ Complete)**
+- [x] Google Vertex AI integration
+- [x] GoogleAnalyticsAgent implementation
+- [x] Tool calling workflow
+- [x] Backend cloud deployment
+- [x] Real-time AI conversations
 
-### **Phase 2: Core Application Features**
+### **Phase 2: Core Application Features (Next)**
 - [ ] Account Settings and billing
 - [ ] BYOK integrations management
 - [ ] Conversation history and search
@@ -169,11 +173,14 @@ python main.py
 aterges/
 ├── app/                 # Next.js frontend
 ├── backend/            # FastAPI backend
+│   ├── ai/            # AI orchestrator (Gemini + tool calling)
+│   ├── agents/        # Data agents (Google Analytics, etc.)
 │   ├── auth/          # Authentication logic
-│   ├── database/      # Database connections
-│   └── ai/            # AI orchestrator (Phase 1)
+│   └── database/      # Database connections
 ├── components/        # React components
 ├── docs/             # Project documentation
+├── scripts/          # Development and maintenance scripts
+├── archive/          # Archived configuration files
 └── examples/         # Configuration examples
 ```
 
