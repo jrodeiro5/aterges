@@ -93,8 +93,8 @@ class AuthService:
             error_msg = str(e).lower()
             if "already registered" in error_msg or "already exists" in error_msg or "duplicate" in error_msg:
                 raise ValueError("This email is already registered. Try logging in instead.")
-            elif "invalid email" in error_msg or "email" in error_msg and "invalid" in error_msg:
-                raise ValueError("Please enter a valid email address.")
+            elif "invalid email" in error_msg or ("email" in error_msg and "invalid" in error_msg):
+                raise ValueError("Please enter a valid email address. Use a real domain like @gmail.com, @outlook.com, etc.")
             elif "password" in error_msg and ("weak" in error_msg or "short" in error_msg):
                 raise ValueError("Password must be at least 6 characters long.")
             else:

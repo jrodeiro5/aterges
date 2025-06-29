@@ -36,8 +36,8 @@ async def test_signup():
         print(f"❌ Failed to initialize auth service: {e}")
         return
     
-    # Test email and password
-    test_email = "test-debug@example.com"
+    # Test email and password - Use a realistic email domain
+    test_email = "test.signup@gmail.com"  # Gmail is always accepted
     test_password = "testpassword123"
     
     print(f"\n🧪 Testing signup with: {test_email}")
