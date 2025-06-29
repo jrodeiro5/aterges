@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'Aterges AI - Automatización Inteligente para tu Negocio',
@@ -31,6 +32,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster richColors />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
