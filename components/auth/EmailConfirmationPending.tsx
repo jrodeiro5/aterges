@@ -5,7 +5,7 @@ import { Mail, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { resendConfirmationEmail } from '@/lib/auth-utils';
+import { supabaseAuthService } from '@/lib/auth-supabase-fixed';
 
 interface EmailConfirmationPendingProps {
   email: string;
@@ -23,7 +23,7 @@ export function EmailConfirmationPending({ email, onGoBack }: EmailConfirmationP
     setIsResending(true);
     setResendStatus({ type: null, message: '' });
 
-    const result = await resendConfirmationEmail(email);
+    const result = await supabaseAuthService.resendConfirmation(email);
     
     setResendStatus({
       type: result.success ? 'success' : 'error',

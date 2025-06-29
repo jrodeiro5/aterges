@@ -1,69 +1,54 @@
 "use client"
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/layouts/public-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { authService } from '@/lib/auth';
-import { toast } from 'sonner';
 import { Loader2, Mail, Lock } from 'lucide-react';
-import { AuthErrorDisplay } from '@/components/auth/AuthErrorDisplay';
-import { AuthError } from '@/lib/auth-utils';
+import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
+import { useSupabaseAuth } from '@/lib/auth-supabase-fixed';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState<AuthError | null>(null);
-  const router = useRouter();
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  
+  const { signIn } = useSupabaseAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Clear previous errors
-    setAuthError(null);
     setIsLoading(true);
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      const response = await fetch(`${baseUrl}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        toast.success(data.message);
-        router.push('/app/dashboard');
-      } else {
-        const errorData = await response.json();
-        
-        if (typeof errorData.detail === 'object') {
-          // Handle structured error response
-          setAuthError(errorData.detail as AuthError);
-        } else {
-          // Handle simple error string
-          toast.error(errorData.detail || 'Error al iniciar sesión');
-        }
+      const result = await signIn(email, password);
+      
+      // If user needs email confirmation, show confirmation screen
+      if (result?.needsEmailConfirmation) {
+        setNeedsConfirmation(true);
       }
+      // Successful login is handled by the hook
     } catch (error) {
-      toast.error('Error de conexión. Por favor, inténtalo de nuevo.');
+      // Error handling is done in the hook with toast messages
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRetryLogin = () => {
-    setAuthError(null);
-  };
+  // Show email confirmation screen if needed
+  if (needsConfirmation) {
+    return (
+      <EmailConfirmationPending 
+        email={email} 
+        onGoBack={() => setNeedsConfirmation(false)} 
+      />
+    );
+  }
 
   return (
     <PublicLayout>
@@ -76,15 +61,6 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {authError && (
-              <div className="mb-4">
-                <AuthErrorDisplay 
-                  error={authError} 
-                  onRetry={handleRetryLogin} 
-                />
-              </div>
-            )}
-            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>

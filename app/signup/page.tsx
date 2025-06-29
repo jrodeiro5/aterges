@@ -1,19 +1,16 @@
 "use client"
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/layouts/public-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { authService } from '@/lib/auth';
-import { toast } from 'sonner';
-import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { Loader2, Mail, Lock } from 'lucide-react';
 import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
-import { AuthErrorDisplay } from '@/components/auth/AuthErrorDisplay';
-import { AuthError } from '@/lib/auth-utils';
+import { useSupabaseAuth } from '@/lib/auth-supabase-fixed';
+import { toast } from 'sonner';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -21,14 +18,11 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
-  const [authError, setAuthError] = useState<AuthError | null>(null);
-  const router = useRouter();
+  
+  const { signUp } = useSupabaseAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Clear previous errors
-    setAuthError(null);
     
     if (password !== confirmPassword) {
       toast.error('Las contraseñas no coinciden');
@@ -43,41 +37,15 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      const response = await fetch(`${baseUrl}/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.next_step === 'dashboard') {
-          // User can login immediately (email confirmed)
-          localStorage.setItem('token', data.token);
-          toast.success(data.message);
-          router.push('/app/dashboard');
-        } else if (data.next_step === 'confirm_email') {
-          // Show email confirmation screen
-          setNeedsConfirmation(true);
-          toast.success(data.message);
-        }
-      } else {
-        const errorData = await response.json();
-        
-        if (typeof errorData.detail === 'object') {
-          // Handle structured error response
-          setAuthError(errorData.detail as AuthError);
-        } else {
-          // Handle simple error string
-          toast.error(errorData.detail || 'Error al crear la cuenta');
-        }
+      const result = await signUp(email, password);
+      
+      if (result?.needsEmailConfirmation) {
+        setNeedsConfirmation(true);
       }
+      // If email is immediately confirmed, the hook handles navigation
     } catch (error) {
-      toast.error('Error de conexión. Por favor, inténtalo de nuevo.');
+      // Error handling is done in the hook with toast messages
+      console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -104,15 +72,6 @@ export default function SignupPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {authError && (
-              <div className="mb-4">
-                <AuthErrorDisplay 
-                  error={authError} 
-                  onRetry={() => setAuthError(null)} 
-                />
-              </div>
-            )}
-            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>
