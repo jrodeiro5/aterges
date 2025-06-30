@@ -78,8 +78,8 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title=settings.app_name,
-    description="Backend API for Aterges AI Platform - Phase 1 with AI Orchestrator",
-    version="1.2.0",
+    description="Backend API for Aterges AI Platform - AI Orchestrator with Google Analytics Integration",
+    version="1.3.0",
     debug=settings.debug,
     lifespan=lifespan
 )
@@ -126,15 +126,27 @@ async def health_check():
     ai_status = "available" if ai_orchestrator else "unavailable"
     config_status = "complete" if settings.validate_google_cloud_config() else "incomplete"
     
+    # Get the actual port from environment (Cloud Run sets this automatically)
+    current_port = os.environ.get("PORT", "8000")
+    
     return {
         "status": "healthy", 
         "message": "Aterges AI Backend is running",
-        "version": "1.2.0 - Phase 1",
-        "ai_orchestrator": ai_status,
-        "google_cloud_config": config_status,
-        "project_id": settings.google_cloud_project or "not configured",
-        "ga4_configured": bool(settings.ga4_property_id),
-        "cors_origins": settings.get_cors_origins_list()
+        "version": "1.3.0 - AI Orchestrator Fixed",
+        "port": current_port,
+        "services": {
+            "database": "connected" if database else "disconnected",
+            "auth_service": "available" if auth_service else "unavailable",
+            "ai_orchestrator": ai_status
+        },
+        "cors_origins": settings.get_cors_origins_list(),
+        "environment_check": {
+            "SUPABASE_URL": "set" if os.environ.get("SUPABASE_URL") else "missing",
+            "DATABASE_URL": "set" if os.environ.get("DATABASE_URL") else "missing",
+            "SECRET_KEY": "set" if os.environ.get("SECRET_KEY") else "missing",
+            "GOOGLE_CLOUD_PROJECT": settings.google_cloud_project or "not set",
+            "GA4_PROPERTY_ID": "set" if settings.ga4_property_id else "not set"
+        }
     }
 
 
