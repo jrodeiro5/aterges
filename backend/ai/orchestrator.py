@@ -65,91 +65,102 @@ class AIOrchestrator:
         """Create Vertex AI tools from available agents"""
         function_declarations = []
         
-        # Google Analytics Agent functions
-        if 'google_analytics' in self.agents:
-            # Get GA4 report
-            function_declarations.append(
-                FunctionDeclaration(
-                    name="get_ga4_report",
-                    description="Get Google Analytics 4 data for website metrics like sessions, pageviews, users, etc.",
-                    parameters={
-                        "type": "object",
-                        "properties": {
-                            "start_date": {
-                                "type": "string",
-                                "description": "Start date in YYYY-MM-DD format"
+        try:
+            # Google Analytics Agent functions
+            if 'google_analytics' in self.agents:
+                # Get GA4 report
+                function_declarations.append(
+                    FunctionDeclaration(
+                        name="get_ga4_report",
+                        description="Get Google Analytics 4 data for website metrics like sessions, pageviews, users, etc.",
+                        parameters={
+                            "type": "object",
+                            "properties": {
+                                "start_date": {
+                                    "type": "string",
+                                    "description": "Start date in YYYY-MM-DD format"
+                                },
+                                "end_date": {
+                                    "type": "string", 
+                                    "description": "End date in YYYY-MM-DD format"
+                                },
+                                "dimensions": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "List of dimensions like ['date', 'country', 'pagePath']"
+                                },
+                                "metrics": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "List of metrics like ['sessions', 'pageviews', 'users']"
+                                }
                             },
-                            "end_date": {
-                                "type": "string", 
-                                "description": "End date in YYYY-MM-DD format"
-                            },
-                            "dimensions": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "description": "List of dimensions like ['date', 'country', 'pagePath']"
-                            },
-                            "metrics": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "description": "List of metrics like ['sessions', 'pageviews', 'users']"
-                            }
-                        },
-                        "required": ["start_date", "end_date"]
-                    }
+                            "required": ["start_date", "end_date"]
+                        }
+                    )
                 )
-            )
+                
+                # Get top pages
+                function_declarations.append(
+                    FunctionDeclaration(
+                        name="get_top_pages",
+                        description="Get the most popular pages from Google Analytics",
+                        parameters={
+                            "type": "object",
+                            "properties": {
+                                "start_date": {
+                                    "type": "string",
+                                    "description": "Start date in YYYY-MM-DD format"
+                                },
+                                "end_date": {
+                                    "type": "string",
+                                    "description": "End date in YYYY-MM-DD format"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "description": "Number of top pages to return (default: 10)"
+                                }
+                            },
+                            "required": ["start_date", "end_date"]
+                        }
+                    )
+                )
+                
+                # Get traffic sources
+                function_declarations.append(
+                    FunctionDeclaration(
+                        name="get_traffic_sources",
+                        description="Get traffic source data from Google Analytics (organic, direct, referral, etc.)",
+                        parameters={
+                            "type": "object",
+                            "properties": {
+                                "start_date": {
+                                    "type": "string",
+                                    "description": "Start date in YYYY-MM-DD format"
+                                },
+                                "end_date": {
+                                    "type": "string",
+                                    "description": "End date in YYYY-MM-DD format"
+                                }
+                            },
+                            "required": ["start_date", "end_date"]
+                        }
+                    )
+                )
             
-            # Get top pages
-            function_declarations.append(
-                FunctionDeclaration(
-                    name="get_top_pages",
-                    description="Get the most popular pages from Google Analytics",
-                    parameters={
-                        "type": "object",
-                        "properties": {
-                            "start_date": {
-                                "type": "string",
-                                "description": "Start date in YYYY-MM-DD format"
-                            },
-                            "end_date": {
-                                "type": "string",
-                                "description": "End date in YYYY-MM-DD format"
-                            },
-                            "limit": {
-                                "type": "integer",
-                                "description": "Number of top pages to return (default: 10)"
-                            }
-                        },
-                        "required": ["start_date", "end_date"]
-                    }
-                )
-            )
+            # Create tools if we have function declarations
+            if function_declarations:
+                tools = [Tool(function_declarations=function_declarations)]
+                logger.info(f"Successfully created {len(function_declarations)} function declarations in {len(tools)} tool(s)")
+            else:
+                tools = []
+                logger.warning("No function declarations created - no agents available")
             
-            # Get traffic sources
-            function_declarations.append(
-                FunctionDeclaration(
-                    name="get_traffic_sources",
-                    description="Get traffic source data from Google Analytics (organic, direct, referral, etc.)",
-                    parameters={
-                        "type": "object",
-                        "properties": {
-                            "start_date": {
-                                "type": "string",
-                                "description": "Start date in YYYY-MM-DD format"
-                            },
-                            "end_date": {
-                                "type": "string",
-                                "description": "End date in YYYY-MM-DD format"
-                            }
-                        },
-                        "required": ["start_date", "end_date"]
-                    }
-                )
-            )
-        
-        tools = [Tool(function_declarations=function_declarations)] if function_declarations else []
-        logger.info(f"Created {len(function_declarations)} function declarations")
-        return tools
+            return tools
+            
+        except Exception as e:
+            logger.error(f"Error creating tools: {e}")
+            return []
     
     def _parse_date_reference(self, user_query: str) -> tuple[str, str]:
         """Parse natural language date references into start_date and end_date"""
@@ -335,13 +346,21 @@ Remember: You can access real Google Analytics data for this user. Use the tools
     
     def get_agent_status(self) -> Dict[str, Any]:
         """Get status of all agents"""
+        # Count total function declarations across all tools
+        tools_count = 0
+        if self.tools:
+            for tool in self.tools:
+                if hasattr(tool, 'function_declarations') and tool.function_declarations:
+                    tools_count += len(tool.function_declarations)
+        
         status = {
             "orchestrator": {
                 "model": self.model_name,
                 "project_id": self.project_id,
                 "location": self.location,
                 "agents_count": len(self.agents),
-                "tools_count": len(self.tools[0].function_declarations) if self.tools else 0
+                "tools_count": tools_count,
+                "tools_available": len(self.tools) > 0
             },
             "agents": {}
         }
