@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleTagManager, GoogleTagManagerNoScript } from '@/components/analytics/GoogleTagManager';
 
 export const metadata: Metadata = {
@@ -61,8 +62,9 @@ export default function RootLayout({
           {children}
           <Toaster richColors />
           
-          {/* Vercel Analytics */}
+          {/* Vercel Analytics & Speed Insights */}
           <Analytics />
+          <SpeedInsights />
           
           {/* Note: GA4 tracking is handled through GTM only */}
           {/* Configure GA4 as a tag within your GTM container */}
