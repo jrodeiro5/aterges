@@ -7,6 +7,8 @@
 [![Backend](https://img.shields.io/badge/Backend-Live%20on%20Cloud%20Run-green)](https://aterges-backend-service-1017653515088.europe-west1.run.app/)
 [![Database](https://img.shields.io/badge/Database-Production%20Ready-green)]()
 
+**Last Updated:** July 5, 2025 - Deployment trigger
+
 ---
 
 ## 🎯 **Vision**
