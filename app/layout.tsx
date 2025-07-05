@@ -10,6 +10,24 @@ export const metadata: Metadata = {
   description: 'Plataforma SaaS de IA para automatizar procesos empresariales, marketing digital y e-commerce.',
   keywords: 'IA, automatización, SaaS, marketing digital, e-commerce, inteligencia artificial',
   authors: [{ name: 'Aterges AI' }],
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico' }
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/icon0.svg',
+        color: '#000000'
+      }
+    ]
+  },
+  manifest: '/site.webmanifest'
 };
 
 export const viewport: Viewport = {
