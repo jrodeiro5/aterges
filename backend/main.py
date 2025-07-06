@@ -131,96 +131,119 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         token = credentials.credentials
         logger.info(f"Verifying token: {token[:20]}...")
         
-        # Verify the JWT token structure and decode payload
+        # Verify the JWT token with proper signature verification
         try:
             import jwt
-            import json
-            import base64
             from datetime import datetime
             
-            # Decode JWT without verification to check structure
-            try:
-                # Split token into parts
-                header_b64, payload_b64, signature = token.split('.')
-                
-                # Decode header and payload
-                header = json.loads(base64.urlsafe_b64decode(header_b64 + '=='))
-                payload = json.loads(base64.urlsafe_b64decode(payload_b64 + '=='))
-                
-                logger.info(f"JWT header: {header}")
-                logger.info(f"JWT payload keys: {list(payload.keys())}")
-                
-                # Validate token structure
-                if not payload.get('sub') or not payload.get('email'):
+            # Get the JWT secret from environment
+            jwt_secret = os.environ.get("SUPABASE_JWT_SECRET")
+            
+            if jwt_secret:
+                # Proper JWT verification with signature validation
+                try:
+                    payload = jwt.decode(
+                        token, 
+                        jwt_secret, 
+                        algorithms=["HS256"],
+                        options={"verify_aud": True, "verify_exp": True},
+                        audience="authenticated"  # Supabase uses "authenticated" as audience
+                    )
+                    
+                    logger.info(f"JWT signature verified successfully for user: {payload.get('email')}")
+                    
+                    # Extract user information from verified JWT payload
+                    user_id = payload.get("sub")
+                    email = payload.get("email")
+                    user_metadata = payload.get("user_metadata", {})
+                    role = payload.get("role")
+                    
+                    if not user_id or not email:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid token payload",
+                            headers={"WWW-Authenticate": "Bearer"},
+                        )
+                    
+                    logger.info(f"Token valid for user: {email} (role: {role})")
+                    
+                    # Return user data in the expected format
+                    return {
+                        "id": user_id,
+                        "email": email,
+                        "name": user_metadata.get("name") or user_metadata.get("full_name")
+                    }
+                    
+                except jwt.InvalidTokenError as e:
+                    logger.warning(f"JWT signature verification failed: {e}")
+                    # Don't fall back - if we have the secret, require proper verification
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Invalid token structure",
+                        detail="Invalid or expired token",
                         headers={"WWW-Authenticate": "Bearer"},
                     )
+            
+            # Fallback: Manual validation if no JWT secret (shouldn't happen in production)
+            else:
+                logger.warning("No JWT secret found, using manual validation")
                 
-                # Check if token is expired
-                current_time = datetime.now().timestamp()
-                if payload.get('exp', 0) < current_time:
+                # Manual decoding without signature verification (less secure)
+                import json
+                import base64
+                
+                try:
+                    # Split token into parts
+                    header_b64, payload_b64, signature = token.split('.')
+                    
+                    # Decode header and payload
+                    header = json.loads(base64.urlsafe_b64decode(header_b64 + '=='))
+                    payload = json.loads(base64.urlsafe_b64decode(payload_b64 + '=='))
+                    
+                    # Validate token structure
+                    if not payload.get('sub') or not payload.get('email'):
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid token structure",
+                            headers={"WWW-Authenticate": "Bearer"},
+                        )
+                    
+                    # Check if token is expired
+                    current_time = datetime.now().timestamp()
+                    if payload.get('exp', 0) < current_time:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Token expired",
+                            headers={"WWW-Authenticate": "Bearer"},
+                        )
+                    
+                    # Extract user information
+                    user_id = payload.get("sub")
+                    email = payload.get("email")
+                    user_metadata = payload.get("user_metadata", {})
+                    
+                    logger.info(f"Manual validation successful for user: {email}")
+                    
+                    return {
+                        "id": user_id,
+                        "email": email,
+                        "name": user_metadata.get("name") or user_metadata.get("full_name")
+                    }
+                    
+                except (ValueError, json.JSONDecodeError, IndexError) as e:
+                    logger.warning(f"Manual JWT validation failed: {e}")
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Token expired",
+                        detail="Invalid token format",
                         headers={"WWW-Authenticate": "Bearer"},
                     )
-                
-                # Validate issuer
-                expected_issuer = f"https://{os.environ.get('SUPABASE_URL', '').split('//')[-1]}/auth/v1"
-                if payload.get('iss') != expected_issuer:
-                    logger.warning(f"Invalid issuer: {payload.get('iss')} != {expected_issuer}")
-                
-                # Extract user information from JWT payload
-                user_id = payload.get("sub")
-                email = payload.get("email")
-                user_metadata = payload.get("user_metadata", {})
-                role = payload.get("role")
-                
-                logger.info(f"Token valid for user: {email} (role: {role})")
-                
-                # Return user data in the expected format
-                return {
-                    "id": user_id,
-                    "email": email,
-                    "name": user_metadata.get("name") or user_metadata.get("full_name")
-                }
-                
-            except (ValueError, json.JSONDecodeError, IndexError) as e:
-                logger.warning(f"JWT structure validation failed: {e}")
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token format",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
             
         except ImportError:
-            logger.warning("JWT libraries not available, using direct validation")
-            # If libraries aren't available, fall back to basic validation
-            pass
-        
-        # Fallback: Try the original Supabase method (though it might not work with client tokens)
-        try:
-            logger.info("Attempting Supabase client verification as fallback")
-            user_response = supabase_auth_client.auth.get_user(token)
-            
-            if user_response and user_response.user:
-                logger.info(f"Supabase client verification successful for: {user_response.user.email}")
-                return {
-                    "id": user_response.user.id,
-                    "email": user_response.user.email,
-                    "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
-                }
-        except Exception as fallback_error:
-            logger.error(f"Supabase client verification failed: {fallback_error}")
-        
-        # If all methods fail
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token validation failed",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+            logger.warning("JWT libraries not available")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="JWT verification not available",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
             
     except HTTPException:
         raise
