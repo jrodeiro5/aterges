@@ -37,9 +37,14 @@ class GoogleAnalyticsAgent(BaseAgent):
     
     def _initialize(self):
         """Initialize Google Analytics client and credentials"""
-        # Get credentials and property ID from environment
-        service_account_file = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-        self.default_property_id = os.getenv('GA4_PROPERTY_ID')
+        # Import settings here to avoid circular imports
+        from config import settings
+        import json
+        import tempfile
+        
+        # Get credentials and property ID from settings
+        service_account_file = settings.google_application_credentials
+        self.default_property_id = settings.ga4_property_id
         
         if not service_account_file:
             raise ValueError(
@@ -48,20 +53,34 @@ class GoogleAnalyticsAgent(BaseAgent):
                 "to point to your Aterges service account JSON file."
             )
         
-        if not os.path.exists(service_account_file):
-            raise ValueError(
-                f"Service account file not found at: {service_account_file}. "
-                "Please ensure the file exists and the path is correct."
-            )
-        
-        # Initialize GA4 client with explicit service account credentials
+        # Handle both file path (local) and JSON content (Vercel)
+        credentials = None
         try:
-            credentials = service_account.Credentials.from_service_account_file(
-                service_account_file,
-                scopes=['https://www.googleapis.com/auth/analytics.readonly']
-            )
+            if service_account_file.startswith('{'):
+                # JSON content (Vercel deployment)
+                service_account_info = json.loads(service_account_file)
+                credentials = service_account.Credentials.from_service_account_info(
+                    service_account_info,
+                    scopes=['https://www.googleapis.com/auth/analytics.readonly']
+                )
+                logger.info("Google Analytics client initialized with service account JSON content")
+            else:
+                # File path (local development)
+                if not os.path.exists(service_account_file):
+                    raise ValueError(
+                        f"Service account file not found at: {service_account_file}. "
+                        "Please ensure the file exists and the path is correct."
+                    )
+                credentials = service_account.Credentials.from_service_account_file(
+                    service_account_file,
+                    scopes=['https://www.googleapis.com/auth/analytics.readonly']
+                )
+                logger.info(f"Google Analytics client initialized with service account file: {service_account_file}")
+            
             self.ga_client = BetaAnalyticsDataClient(credentials=credentials)
-            logger.info(f"Google Analytics client initialized with service account: {service_account_file}")
+            
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in service account credentials: {str(e)}")
         except Exception as e:
             raise ValueError(f"Failed to initialize Google Analytics client: {str(e)}")
         
@@ -99,13 +118,17 @@ class GoogleAnalyticsAgent(BaseAgent):
             
             return {
                 "status": "healthy",
+                "message": "GA4 connection working",
                 "property_id": self.default_property_id,
-                "test_query": "successful",
-                "data_available": len(response.rows) > 0
+                "test_data_points": len(response.rows)
             }
             
         except Exception as e:
-            return self._handle_error("health_check", e)
+            return {
+                "status": "error",
+                "message": f"GA4 connection failed: {str(e)}",
+                "property_id": self.default_property_id
+            }
     
     async def get_ga4_report(self, 
                            start_date: str, 

@@ -31,7 +31,7 @@ class AIOrchestrator:
         """Initialize the AI Orchestrator"""
         self.project_id = project_id
         self.location = location
-        self.model_name = "gemini-1.5-pro"
+        self.model_name = "gemini-2.5-flash"  # Updated to available model for new projects
         
         # Initialize Vertex AI
         vertexai.init(project=project_id, location=location)
@@ -275,7 +275,17 @@ class AIOrchestrator:
             max_iterations = 5  # Prevent infinite loops
             iteration = 0
             
-            while response.candidates[0].finish_reason == FinishReason.FUNCTION_CALL and iteration < max_iterations:
+            while iteration < max_iterations:
+                # Check if response contains function calls
+                has_function_calls = False
+                if (response.candidates and response.candidates[0].content and 
+                    response.candidates[0].content.parts):
+                    has_function_calls = any(
+                        hasattr(part, 'function_call') for part in response.candidates[0].content.parts
+                    )
+                
+                if not has_function_calls:
+                    break
                 iteration += 1
                 logger.info(f"Processing function calls (iteration {iteration})")
                 
