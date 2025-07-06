@@ -38,16 +38,41 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
+      // Debug: Check if user is authenticated first
+      if (!user) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
+
+      // Debug: Log current auth state
+      console.log('Current user from hook:', user);
+      
       // Get the current Supabase session token
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      // Debug: Log session details
+      console.log('Session from getSession():', session);
+      console.log('Session error:', sessionError);
       
       if (sessionError) {
         throw new Error('Authentication error: ' + sessionError.message);
       }
       
       if (!session?.access_token) {
-        throw new Error('No authentication token available. Please log in again.');
+        console.log('No session or access token. Attempting to refresh...');
+        
+        // Try to refresh the session
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError || !refreshedSession?.access_token) {
+          throw new Error('No authentication token available. Please log out and log in again.');
+        }
+        
+        console.log('Successfully refreshed session:', refreshedSession);
+        // Use the refreshed session
+        session = refreshedSession;
       }
+
+      console.log('Making API request with token:', session.access_token.substring(0, 20) + '...');
 
       const response = await fetch(`${baseUrl}/api/query`, {
         method: 'POST',
@@ -58,14 +83,21 @@ export function ChatInterface() {
         body: JSON.stringify({ prompt }),
       });
 
+      console.log('API response status:', response.status);
+      console.log('API response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          throw new Error('Authentication failed. Please log in again.');
+          throw new Error('Authentication failed. Please log out and log in again.');
         }
+        
+        const errorText = await response.text();
+        console.log('API error response:', errorText);
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('API response data:', data);
       
       // Add assistant message
       const assistantMessage: Message = {
