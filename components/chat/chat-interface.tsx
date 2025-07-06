@@ -44,13 +44,15 @@ export function ChatInterface() {
       }
       
       // Get the current Supabase session token
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         throw new Error('Authentication error: ' + sessionError.message);
       }
       
-      if (!session?.access_token) {
+      let currentSession = initialSession;
+      
+      if (!currentSession?.access_token) {
         console.log('No session or access token. Attempting to refresh...');
         
         // Try to refresh the session
@@ -62,14 +64,14 @@ export function ChatInterface() {
         
         console.log('Successfully refreshed session');
         // Use the refreshed session
-        session = refreshedSession;
+        currentSession = refreshedSession;
       }
 
       const response = await fetch(`${baseUrl}/api/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${currentSession.access_token}`,
         },
         body: JSON.stringify({ prompt }),
       });
