@@ -66,23 +66,14 @@ jobs:
           echo "GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:+SET}"
           echo "GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:+SET}"
           
-          # Deploy with environment variables instead of update-secrets
+          # Deploy with environment variables (single --set-env-vars flag with comma-separated values)
           gcloud run deploy $SERVICE_NAME \
             --image=europe-west1-docker.pkg.dev/aterges-ai/aterges-repo/aterges-backend:$GITHUB_SHA \
             --region=$REGION \
             --platform=managed \
             --allow-unauthenticated \
             --project=aterges-ai \
-            --set-env-vars="DEBUG=false" \
-            --set-env-vars="GOOGLE_CLOUD_PROJECT=aterges-ai" \
-            --set-env-vars="GOOGLE_CLOUD_LOCATION=us-central1" \
-            --set-env-vars="CORS_ORIGINS=https://aterges.vercel.app" \
-            --set-env-vars="SECRET_KEY=${SECRET_KEY}" \
-            --set-env-vars="SUPABASE_URL=${SUPABASE_URL}" \
-            --set-env-vars="SUPABASE_KEY=${SUPABASE_KEY}" \
-            --set-env-vars="DATABASE_URL=${DATABASE_URL}" \
-            --set-env-vars="GA4_PROPERTY_ID=${GA4_PROPERTY_ID}" \
-            --set-env-vars="GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}" \
+            --set-env-vars="DEBUG=false,GOOGLE_CLOUD_PROJECT=aterges-ai,GOOGLE_CLOUD_LOCATION=us-central1,CORS_ORIGINS=https://aterges.vercel.app,SECRET_KEY=${SECRET_KEY},SUPABASE_URL=${SUPABASE_URL},SUPABASE_KEY=${SUPABASE_KEY},DATABASE_URL=${DATABASE_URL},GA4_PROPERTY_ID=${GA4_PROPERTY_ID},GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}" \
             --memory=1Gi \
             --cpu=1 \
             --timeout=900 \
