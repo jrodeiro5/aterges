@@ -4,6 +4,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from contextlib import asynccontextmanager
 import logging
 import os
+from typing import Dict, Any, Optional
+
+# Supabase imports for authentication
+from supabase import create_client, Client
+from gotrue.errors import AuthError
 
 from config import settings
 from auth.auth_service_improved import AuthService
@@ -19,6 +24,21 @@ logger = logging.getLogger(__name__)
 
 # Security
 security = HTTPBearer()
+
+# Initialize Supabase client for authentication
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_KEY")
+
+if not supabase_url or not supabase_key:
+    logger.error("Supabase configuration missing. SUPABASE_URL and SUPABASE_KEY are required.")
+    supabase_auth_client: Optional[Client] = None
+else:
+    try:
+        supabase_auth_client = create_client(supabase_url, supabase_key)
+        logger.info("Supabase auth client initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Supabase auth client: {e}")
+        supabase_auth_client = None
 
 # Global variables for dependencies
 auth_service: AuthService = None
@@ -95,26 +115,61 @@ app.add_middleware(
 )
 
 
-# Dependency to get current user
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Get current authenticated user."""
+# Dependency to get current user using Supabase authentication
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
+    """
+    Get current authenticated user from Supabase token.
+    """
     try:
+        if not supabase_auth_client:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication service unavailable",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
         token = credentials.credentials
-        user = await auth_service.get_current_user(token)
-        if not user:
+        
+        # Verify the token with Supabase
+        try:
+            user_response = supabase_auth_client.auth.get_user(token)
+            
+            if not user_response or not user_response.user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid authentication credentials",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            
+            # Return user data in the expected format
+            return {
+                "id": user_response.user.id,
+                "email": user_response.user.email,
+                "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
+            }
+            
+        except AuthError as e:
+            logger.warning(f"Supabase auth error: {e}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        return user
+        except Exception as e:
+            logger.error(f"Unexpected auth error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication failed",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Authentication error: {e}")
+        logger.error(f"Authentication system error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication system error",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

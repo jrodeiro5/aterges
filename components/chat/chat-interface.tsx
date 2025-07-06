@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { ChatHistory } from './chat-history';
 import { ChatInputForm } from './chat-input-form';
-import { authService } from '@/lib/auth';
+import { useSupabaseAuth } from '@/lib/auth-supabase-fixed';
+import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
 interface Message {
@@ -12,9 +13,16 @@ interface Message {
   content: string;
 }
 
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useSupabaseAuth();
   
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -30,17 +38,31 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
+      // Get the current Supabase session token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error('Authentication error: ' + sessionError.message);
+      }
+      
+      if (!session?.access_token) {
+        throw new Error('No authentication token available. Please log in again.');
+      }
+
       const response = await fetch(`${baseUrl}/api/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...authService.getAuthHeader(),
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ prompt }),
       });
 
       if (!response.ok) {
-        throw new Error('Error al procesar la consulta');
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Authentication failed. Please log in again.');
+        }
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -54,20 +76,31 @@ export function ChatInterface() {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error inesperado');
+      console.error('Chat error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      toast.error(errorMessage);
       
       // Add error message
-      const errorMessage: Message = {
+      const errorResponseMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, inténtalo de nuevo.',
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorResponseMessage]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Don't render if user is not authenticated
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Please log in to use the chat.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
