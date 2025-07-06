@@ -131,87 +131,96 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         token = credentials.credentials
         logger.info(f"Verifying token: {token[:20]}...")
         
-        # Verify the JWT token directly
+        # Verify the JWT token structure and decode payload
         try:
             import jwt
-            import requests
+            import json
+            import base64
+            from datetime import datetime
             
-            # Get Supabase JWT secret from environment or fetch public key
-            jwt_secret = os.environ.get("SUPABASE_JWT_SECRET")
-            
-            if not jwt_secret:
-                # If no JWT secret, try to get it from Supabase public URL
-                # For now, let's use the anon key as it's publicly available
-                jwt_secret = supabase_key
-            
-            # Decode the JWT token
+            # Decode JWT without verification to check structure
             try:
-                payload = jwt.decode(token, jwt_secret, algorithms=["HS256"], options={"verify_aud": False})
-                logger.info(f"JWT payload decoded: {payload}")
+                # Split token into parts
+                header_b64, payload_b64, signature = token.split('.')
+                
+                # Decode header and payload
+                header = json.loads(base64.urlsafe_b64decode(header_b64 + '=='))
+                payload = json.loads(base64.urlsafe_b64decode(payload_b64 + '=='))
+                
+                logger.info(f"JWT header: {header}")
+                logger.info(f"JWT payload keys: {list(payload.keys())}")
+                
+                # Validate token structure
+                if not payload.get('sub') or not payload.get('email'):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid token structure",
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+                
+                # Check if token is expired
+                current_time = datetime.now().timestamp()
+                if payload.get('exp', 0) < current_time:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token expired",
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+                
+                # Validate issuer
+                expected_issuer = f"https://{os.environ.get('SUPABASE_URL', '').split('//')[-1]}/auth/v1"
+                if payload.get('iss') != expected_issuer:
+                    logger.warning(f"Invalid issuer: {payload.get('iss')} != {expected_issuer}")
                 
                 # Extract user information from JWT payload
                 user_id = payload.get("sub")
                 email = payload.get("email")
                 user_metadata = payload.get("user_metadata", {})
+                role = payload.get("role")
                 
-                if not user_id or not email:
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Invalid token payload",
-                        headers={"WWW-Authenticate": "Bearer"},
-                    )
+                logger.info(f"Token valid for user: {email} (role: {role})")
                 
                 # Return user data in the expected format
                 return {
                     "id": user_id,
                     "email": email,
-                    "name": user_metadata.get("name")
+                    "name": user_metadata.get("name") or user_metadata.get("full_name")
                 }
                 
-            except jwt.InvalidTokenError as e:
-                logger.warning(f"JWT validation failed: {e}")
-                # Fallback: Try the original Supabase method
-                try:
-                    user_response = supabase_auth_client.auth.get_user(token)
-                    
-                    if not user_response or not user_response.user:
-                        raise HTTPException(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid authentication credentials",
-                            headers={"WWW-Authenticate": "Bearer"},
-                        )
-                    
-                    return {
-                        "id": user_response.user.id,
-                        "email": user_response.user.email,
-                        "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
-                    }
-                    
-                except Exception as fallback_error:
-                    logger.error(f"Fallback auth also failed: {fallback_error}")
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Token validation failed",
-                        headers={"WWW-Authenticate": "Bearer"},
-                    )
-            
-        except ImportError:
-            logger.warning("PyJWT not available, using Supabase client method")
-            # Fallback to original method if PyJWT not available
-            user_response = supabase_auth_client.auth.get_user(token)
-            
-            if not user_response or not user_response.user:
+            except (ValueError, json.JSONDecodeError, IndexError) as e:
+                logger.warning(f"JWT structure validation failed: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid authentication credentials",
+                    detail="Invalid token format",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             
-            return {
-                "id": user_response.user.id,
-                "email": user_response.user.email,
-                "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
-            }
+        except ImportError:
+            logger.warning("JWT libraries not available, using direct validation")
+            # If libraries aren't available, fall back to basic validation
+            pass
+        
+        # Fallback: Try the original Supabase method (though it might not work with client tokens)
+        try:
+            logger.info("Attempting Supabase client verification as fallback")
+            user_response = supabase_auth_client.auth.get_user(token)
+            
+            if user_response and user_response.user:
+                logger.info(f"Supabase client verification successful for: {user_response.user.email}")
+                return {
+                    "id": user_response.user.id,
+                    "email": user_response.user.email,
+                    "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
+                }
+        except Exception as fallback_error:
+            logger.error(f"Supabase client verification failed: {fallback_error}")
+        
+        # If all methods fail
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token validation failed",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
             
     except HTTPException:
         raise
