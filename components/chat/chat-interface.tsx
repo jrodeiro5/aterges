@@ -38,20 +38,13 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // Debug: Check if user is authenticated first
+      // Check if user is authenticated first
       if (!user) {
         throw new Error('User not authenticated. Please log in again.');
       }
-
-      // Debug: Log current auth state
-      console.log('Current user from hook:', user);
       
       // Get the current Supabase session token
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      // Debug: Log session details
-      console.log('Session from getSession():', session);
-      console.log('Session error:', sessionError);
       
       if (sessionError) {
         throw new Error('Authentication error: ' + sessionError.message);
@@ -67,12 +60,10 @@ export function ChatInterface() {
           throw new Error('No authentication token available. Please log out and log in again.');
         }
         
-        console.log('Successfully refreshed session:', refreshedSession);
+        console.log('Successfully refreshed session');
         // Use the refreshed session
         session = refreshedSession;
       }
-
-      console.log('Making API request with token:', session.access_token.substring(0, 20) + '...');
 
       const response = await fetch(`${baseUrl}/api/query`, {
         method: 'POST',
@@ -82,9 +73,6 @@ export function ChatInterface() {
         },
         body: JSON.stringify({ prompt }),
       });
-
-      console.log('API response status:', response.status);
-      console.log('API response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -97,7 +85,6 @@ export function ChatInterface() {
       }
 
       const data = await response.json();
-      console.log('API response data:', data);
       
       // Add assistant message
       const assistantMessage: Message = {
