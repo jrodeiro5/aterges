@@ -55,7 +55,6 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: |-
           # Verify secrets are set (will show *** if secret is set, or empty if not set)
           echo "🔍 Verifying secrets are set..."
@@ -64,16 +63,17 @@ jobs:
           echo "SUPABASE_KEY: ${SUPABASE_KEY:+SET}"
           echo "DATABASE_URL: ${DATABASE_URL:+SET}"
           echo "GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:+SET}"
-          echo "GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:+SET}"
+          echo "🔍 Using workload identity for Google credentials (no GOOGLE_APPLICATION_CREDENTIALS needed)"
           
           # Deploy with environment variables (single --set-env-vars flag with comma-separated values)
+          # Note: GOOGLE_APPLICATION_CREDENTIALS removed - using workload identity instead
           gcloud run deploy $SERVICE_NAME \
             --image=europe-west1-docker.pkg.dev/aterges-ai/aterges-repo/aterges-backend:$GITHUB_SHA \
             --region=$REGION \
             --platform=managed \
             --allow-unauthenticated \
             --project=aterges-ai \
-            --set-env-vars="DEBUG=false,GOOGLE_CLOUD_PROJECT=aterges-ai,GOOGLE_CLOUD_LOCATION=us-central1,CORS_ORIGINS=https://aterges.vercel.app,SECRET_KEY=${SECRET_KEY},SUPABASE_URL=${SUPABASE_URL},SUPABASE_KEY=${SUPABASE_KEY},DATABASE_URL=${DATABASE_URL},GA4_PROPERTY_ID=${GA4_PROPERTY_ID},GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}" \
+            --set-env-vars="DEBUG=false,GOOGLE_CLOUD_PROJECT=aterges-ai,GOOGLE_CLOUD_LOCATION=us-central1,CORS_ORIGINS=https://aterges.vercel.app,SECRET_KEY=${SECRET_KEY},SUPABASE_URL=${SUPABASE_URL},SUPABASE_KEY=${SUPABASE_KEY},DATABASE_URL=${DATABASE_URL},GA4_PROPERTY_ID=${GA4_PROPERTY_ID}" \
             --memory=1Gi \
             --cpu=1 \
             --timeout=900 \

@@ -40,42 +40,54 @@ class GoogleAnalyticsAgent(BaseAgent):
         # Import settings here to avoid circular imports
         from config import settings
         import json
-        import tempfile
+        import os
         
-        # Get credentials and property ID from settings
-        service_account_file = settings.google_application_credentials
+        # Get property ID from settings
         self.default_property_id = settings.ga4_property_id
         
-        if not service_account_file:
-            raise ValueError(
-                "Google service account credentials not found. "
-                "Please set GOOGLE_APPLICATION_CREDENTIALS environment variable "
-                "to point to your Aterges service account JSON file."
-            )
+        # Check if we're running in Cloud Run (workload identity environment)
+        is_cloud_run = os.environ.get('K_SERVICE') is not None
         
-        # Handle both file path (local) and JSON content (Vercel)
         credentials = None
         try:
-            if service_account_file.startswith('{'):
-                # JSON content (Vercel deployment)
-                service_account_info = json.loads(service_account_file)
-                credentials = service_account.Credentials.from_service_account_info(
-                    service_account_info,
+            if is_cloud_run:
+                # Use default credentials from workload identity in Cloud Run
+                from google.auth import default
+                credentials, _ = default(
                     scopes=['https://www.googleapis.com/auth/analytics.readonly']
                 )
-                logger.info("Google Analytics client initialized with service account JSON content")
+                logger.info("Google Analytics client initialized with workload identity (Cloud Run)")
             else:
-                # File path (local development)
-                if not os.path.exists(service_account_file):
+                # Local development - use service account file or JSON content
+                service_account_file = settings.google_application_credentials
+                
+                if not service_account_file:
                     raise ValueError(
-                        f"Service account file not found at: {service_account_file}. "
-                        "Please ensure the file exists and the path is correct."
+                        "Google service account credentials not found. "
+                        "Please set GOOGLE_APPLICATION_CREDENTIALS environment variable "
+                        "to point to your Aterges service account JSON file."
                     )
-                credentials = service_account.Credentials.from_service_account_file(
-                    service_account_file,
-                    scopes=['https://www.googleapis.com/auth/analytics.readonly']
-                )
-                logger.info(f"Google Analytics client initialized with service account file: {service_account_file}")
+                
+                if service_account_file.startswith('{'):
+                    # JSON content (Vercel deployment)
+                    service_account_info = json.loads(service_account_file)
+                    credentials = service_account.Credentials.from_service_account_info(
+                        service_account_info,
+                        scopes=['https://www.googleapis.com/auth/analytics.readonly']
+                    )
+                    logger.info("Google Analytics client initialized with service account JSON content")
+                else:
+                    # File path (local development)
+                    if not os.path.exists(service_account_file):
+                        raise ValueError(
+                            f"Service account file not found at: {service_account_file}. "
+                            "Please ensure the file exists and the path is correct."
+                        )
+                    credentials = service_account.Credentials.from_service_account_file(
+                        service_account_file,
+                        scopes=['https://www.googleapis.com/auth/analytics.readonly']
+                    )
+                    logger.info(f"Google Analytics client initialized with service account file: {service_account_file}")
             
             self.ga_client = BetaAnalyticsDataClient(credentials=credentials)
             
