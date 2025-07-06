@@ -115,10 +115,10 @@ app.add_middleware(
 )
 
 
-# Dependency to get current user using Supabase authentication
+# Dependency to get current user using Supabase JWT verification
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """
-    Get current authenticated user from Supabase token.
+    Get current authenticated user from Supabase JWT token.
     """
     try:
         if not supabase_auth_client:
@@ -129,9 +129,75 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             )
         
         token = credentials.credentials
+        logger.info(f"Verifying token: {token[:20]}...")
         
-        # Verify the token with Supabase
+        # Verify the JWT token directly
         try:
+            import jwt
+            import requests
+            
+            # Get Supabase JWT secret from environment or fetch public key
+            jwt_secret = os.environ.get("SUPABASE_JWT_SECRET")
+            
+            if not jwt_secret:
+                # If no JWT secret, try to get it from Supabase public URL
+                # For now, let's use the anon key as it's publicly available
+                jwt_secret = supabase_key
+            
+            # Decode the JWT token
+            try:
+                payload = jwt.decode(token, jwt_secret, algorithms=["HS256"], options={"verify_aud": False})
+                logger.info(f"JWT payload decoded: {payload}")
+                
+                # Extract user information from JWT payload
+                user_id = payload.get("sub")
+                email = payload.get("email")
+                user_metadata = payload.get("user_metadata", {})
+                
+                if not user_id or not email:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid token payload",
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+                
+                # Return user data in the expected format
+                return {
+                    "id": user_id,
+                    "email": email,
+                    "name": user_metadata.get("name")
+                }
+                
+            except jwt.InvalidTokenError as e:
+                logger.warning(f"JWT validation failed: {e}")
+                # Fallback: Try the original Supabase method
+                try:
+                    user_response = supabase_auth_client.auth.get_user(token)
+                    
+                    if not user_response or not user_response.user:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"},
+                        )
+                    
+                    return {
+                        "id": user_response.user.id,
+                        "email": user_response.user.email,
+                        "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
+                    }
+                    
+                except Exception as fallback_error:
+                    logger.error(f"Fallback auth also failed: {fallback_error}")
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token validation failed",
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+            
+        except ImportError:
+            logger.warning("PyJWT not available, using Supabase client method")
+            # Fallback to original method if PyJWT not available
             user_response = supabase_auth_client.auth.get_user(token)
             
             if not user_response or not user_response.user:
@@ -141,27 +207,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             
-            # Return user data in the expected format
             return {
                 "id": user_response.user.id,
                 "email": user_response.user.email,
                 "name": user_response.user.user_metadata.get("name") if user_response.user.user_metadata else None
             }
-            
-        except AuthError as e:
-            logger.warning(f"Supabase auth error: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        except Exception as e:
-            logger.error(f"Unexpected auth error: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication failed",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
             
     except HTTPException:
         raise
