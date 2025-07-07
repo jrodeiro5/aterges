@@ -281,6 +281,7 @@ async def health_check():
             "SUPABASE_URL": "set" if os.environ.get("SUPABASE_URL") else "missing",
             "DATABASE_URL": "set" if os.environ.get("DATABASE_URL") else "missing",
             "SECRET_KEY": "set" if os.environ.get("SECRET_KEY") else "missing",
+            "SUPABASE_JWT_SECRET": "set" if os.environ.get("SUPABASE_JWT_SECRET") else "missing",
             "GOOGLE_CLOUD_PROJECT": settings.google_cloud_project or "not set",
             "GA4_PROPERTY_ID": "set" if settings.ga4_property_id else "not set"
         }
