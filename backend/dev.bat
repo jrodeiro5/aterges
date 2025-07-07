@@ -99,4 +99,4 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-python main.py
+python main_robust.py

@@ -16,9 +16,9 @@ echo "    * DATABASE_URL: ${DATABASE_URL:+set} ${DATABASE_URL:-not_set}"
 echo "    * GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-not_set}"
 echo "    * GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:+set} ${GA4_PROPERTY_ID:-not_set}"
 
-# Check if main.py exists
-if [ ! -f "main.py" ]; then
-    echo "ERROR: main.py not found in $(pwd)"
+# Check if main_robust.py exists
+if [ ! -f "main_robust.py" ]; then
+    echo "ERROR: main_robust.py not found in $(pwd)"
     ls -la
     exit 1
 fi
@@ -35,5 +35,5 @@ python -c "import fastapi, uvicorn; print('FastAPI and Uvicorn imported successf
 }
 
 # Start the FastAPI application with better error output
-echo "Executing: uvicorn main:app --host 0.0.0.0 --port $PORT --log-level info"
-exec uvicorn main:app --host 0.0.0.0 --port $PORT --log-level info
+echo "Executing: uvicorn main_robust:app --host 0.0.0.0 --port $PORT --log-level info"
+exec uvicorn main_robust:app --host 0.0.0.0 --port $PORT --log-level info
