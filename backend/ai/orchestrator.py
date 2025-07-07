@@ -278,8 +278,8 @@ class AIOrchestrator:
             # Create system prompt
             system_prompt = self._create_system_prompt(user_context)
             
-            # Start the conversation
-            chat = self.model.start_chat()
+            # Start the conversation with response validation disabled
+            chat = self.model.start_chat(response_validation=False)
             
             # Send the system prompt first
             response = chat.send_message(
@@ -353,20 +353,29 @@ Your Role:
 - Answer questions about traffic, user behavior, and content performance
 - Use available tools to fetch real data when needed
 
+IMPORTANT FUNCTION CALLING INSTRUCTIONS:
+- When you need analytics data, ONLY use the provided function tools
+- DO NOT write or execute Python code directly
+- DO NOT use imports like 'from datetime import date'
+- Use the structured function calls: get_ga4_report, get_top_pages, get_traffic_sources
+- For date ranges, use YYYY-MM-DD format in function parameters
+
 Guidelines:
-1. Always use real data from the available tools when possible
+1. Always use real data from the available function tools when possible
 2. Provide clear, concise answers with specific numbers and insights
 3. If you need to fetch data, automatically determine appropriate date ranges from the user's question
 4. Format responses in a friendly, professional manner
 5. Include actionable recommendations when relevant
 6. If data is unavailable, explain why and suggest alternatives
 
-Available Tools:
-- get_ga4_report: Get general Google Analytics data
-- get_top_pages: Get most popular pages
-- get_traffic_sources: Get traffic source breakdown
+Available Function Tools:
+- get_ga4_report: Get general Google Analytics data with custom dimensions and metrics
+- get_top_pages: Get most popular pages from your website
+- get_traffic_sources: Get traffic source breakdown (organic, direct, referral, etc.)
 
-Remember: You can access real Google Analytics data for this user. Use the tools proactively to provide data-driven insights."""
+Example: If user asks "How many users yesterday?", call get_ga4_report with yesterday's date and users metric.
+
+Remember: You can access real Google Analytics data for this user. Use the function tools proactively to provide data-driven insights."""
 
         return system_prompt
     
