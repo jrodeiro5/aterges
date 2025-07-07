@@ -262,6 +262,32 @@ class AIOrchestrator:
             
             logger.info(f"Executing function: {function_name} with args: {function_args}")
             
+            # CRITICAL FIX: Override AI-generated dates with properly parsed dates
+            if function_name in ["get_ga4_report", "get_top_pages", "get_traffic_sources"]:
+                # Check if the AI used old/incorrect dates
+                start_date = function_args.get('start_date')
+                end_date = function_args.get('end_date')
+                
+                # If dates are from 2023 or 2024, override with current dates
+                if start_date and (start_date.startswith('2023') or start_date.startswith('2024')):
+                    logger.warning(f"AI generated old date {start_date}, overriding with current dates")
+                    # Use yesterday for single-day queries, last 7 days for ranges
+                    if start_date == end_date:
+                        # Single day query - use yesterday
+                        from datetime import datetime, timedelta
+                        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+                        function_args['start_date'] = yesterday
+                        function_args['end_date'] = yesterday
+                        logger.info(f"Override to yesterday: {yesterday}")
+                    else:
+                        # Range query - use last 7 days
+                        from datetime import datetime, timedelta
+                        end_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+                        start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+                        function_args['start_date'] = start_date
+                        function_args['end_date'] = end_date
+                        logger.info(f"Override to last 7 days: {start_date} to {end_date}")
+            
             # Route function calls to appropriate agents
             if function_name == "get_ga4_report":
                 if 'google_analytics' not in self.agents:
