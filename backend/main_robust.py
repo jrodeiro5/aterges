@@ -149,7 +149,9 @@ async def health_check():
             "SUPABASE_URL": "set" if settings.supabase_url else "missing",
             "DATABASE_URL": "set" if settings.database_url else "missing", 
             "SECRET_KEY": "set" if settings.secret_key else "missing",
-            "GOOGLE_CLOUD_PROJECT": settings.google_cloud_project or "missing"
+            "SUPABASE_JWT_SECRET": "set" if os.environ.get("SUPABASE_JWT_SECRET") else "missing",
+            "GOOGLE_CLOUD_PROJECT": settings.google_cloud_project or "missing",
+            "GA4_PROPERTY_ID": "set" if settings.ga4_property_id else "missing"
         }
     }
 
