@@ -26,14 +26,15 @@ class GoogleAnalyticsAgent(BaseAgent):
     
     def __init__(self):
         """Initialize the Google Analytics Agent"""
+        # Initialize variables BEFORE calling super().__init__()
+        # GA4 client will be initialized in _initialize()
+        self.ga_client = None
+        self.default_property_id = None
+        
         super().__init__(
             agent_name="Google Analytics Agent",
             agent_description="Retrieves and analyzes Google Analytics 4 data for website performance insights"
         )
-        
-        # GA4 client will be initialized in _initialize()
-        self.ga_client = None
-        self.default_property_id = None
     
     def _initialize(self):
         """Initialize Google Analytics client and credentials"""

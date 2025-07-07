@@ -33,8 +33,8 @@ class AIOrchestrator:
         self.location = location
         self.model_name = "gemini-2.5-flash"  # Updated to available model for new projects
         
-        # Initialize Vertex AI
-        vertexai.init(project=project_id, location=location)
+        # Initialize Vertex AI with proper credentials
+        self._initialize_vertex_ai()
         
         # Initialize the model
         self.model = GenerativeModel(self.model_name)
@@ -46,6 +46,48 @@ class AIOrchestrator:
         self.tools = self._create_tools()
         
         logger.info(f"AI Orchestrator initialized with {len(self.agents)} agents")
+    
+    def _initialize_vertex_ai(self):
+        """Initialize Vertex AI with proper service account credentials"""
+        import os
+        from google.oauth2 import service_account
+        from config import settings
+        
+        try:
+            # Check if we're running in Cloud Run (workload identity environment)
+            is_cloud_run = os.environ.get('K_SERVICE') is not None
+            
+            if is_cloud_run:
+                # Use default credentials from workload identity in Cloud Run
+                vertexai.init(project=self.project_id, location=self.location)
+                logger.info("Vertex AI initialized with workload identity (Cloud Run)")
+            else:
+                # Local development - use service account file
+                service_account_file = settings.google_application_credentials
+                
+                if service_account_file and os.path.exists(service_account_file):
+                    # Load credentials from service account file
+                    credentials = service_account.Credentials.from_service_account_file(
+                        service_account_file,
+                        scopes=['https://www.googleapis.com/auth/cloud-platform']
+                    )
+                    
+                    # Initialize Vertex AI with explicit credentials
+                    vertexai.init(
+                        project=self.project_id, 
+                        location=self.location,
+                        credentials=credentials
+                    )
+                    logger.info(f"Vertex AI initialized with service account: {service_account_file}")
+                else:
+                    # Fallback to default credentials
+                    vertexai.init(project=self.project_id, location=self.location)
+                    logger.warning("Vertex AI initialized with default credentials (may fail without ADC)")
+                    
+        except Exception as e:
+            logger.error(f"Failed to initialize Vertex AI: {e}")
+            # Still try to initialize without credentials as fallback
+            vertexai.init(project=self.project_id, location=self.location)
     
     def _initialize_agents(self) -> Dict[str, BaseAgent]:
         """Initialize all available agents"""
