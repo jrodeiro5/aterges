@@ -199,16 +199,27 @@ class AIOrchestrator:
     
     async def _execute_function_call(self, function_call) -> Dict[str, Any]:
         """Execute a function call from the AI model"""
-        function_name = function_call.name
-        function_args = {}
-        
-        # Parse function arguments
-        for key, value in function_call.args.items():
-            function_args[key] = value
-        
-        logger.info(f"Executing function: {function_name} with args: {function_args}")
-        
         try:
+            # Add null check for function_call
+            if not function_call:
+                logger.error("Function call is None")
+                return {"error": "Invalid function call - function_call is None"}
+            
+            # Check if function_call has name attribute
+            if not hasattr(function_call, 'name'):
+                logger.error(f"Function call missing 'name' attribute: {type(function_call)}")
+                return {"error": "Invalid function call - missing 'name' attribute"}
+            
+            function_name = function_call.name
+            function_args = {}
+            
+            # Parse function arguments with error handling
+            if hasattr(function_call, 'args') and function_call.args:
+                for key, value in function_call.args.items():
+                    function_args[key] = value
+            
+            logger.info(f"Executing function: {function_name} with args: {function_args}")
+            
             # Route function calls to appropriate agents
             if function_name == "get_ga4_report":
                 if 'google_analytics' not in self.agents:
@@ -243,8 +254,13 @@ class AIOrchestrator:
             else:
                 return {"error": f"Unknown function: {function_name}"}
                 
+        except AttributeError as e:
+            logger.error(f"AttributeError in function call execution: {e}")
+            logger.error(f"Function call object type: {type(function_call)}")
+            logger.error(f"Function call object attributes: {dir(function_call) if function_call else 'None'}")
+            return {"error": f"Function call attribute error: {str(e)}"}
         except Exception as e:
-            logger.error(f"Error executing function {function_name}: {e}")
+            logger.error(f"Error executing function call: {e}")
             return {"error": f"Function execution failed: {str(e)}"}
     
     async def process_query(self, user_query: str, user_context: Dict[str, Any] = None) -> str:
@@ -292,12 +308,15 @@ class AIOrchestrator:
                 # Execute all function calls
                 function_responses = []
                 
-                for function_call in response.candidates[0].content.parts:
-                    if hasattr(function_call, 'function_call'):
-                        result = await self._execute_function_call(function_call.function_call)
+                for part in response.candidates[0].content.parts:
+                    if hasattr(part, 'function_call') and part.function_call:
+                        result = await self._execute_function_call(part.function_call)
                         function_responses.append(
                             Part.from_function_response(
-                                name=function_call.function_call.name,
+                                name=part.function_call.name,
+                                response=result
+                            )
+                        )
                                 response=result
                             )
                         )
