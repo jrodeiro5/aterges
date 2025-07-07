@@ -271,30 +271,19 @@ async def query_ai(query_data: dict, current_user = Depends(get_current_user)):
         
         logger.info(f"Processing AI query for user {user_context['email']}: {prompt[:100]}...")
         
-        # Temporary bypass: Simple response while we debug the orchestrator
-        if "ga4" in prompt.lower() or "analytics" in prompt.lower() or "data" in prompt.lower():
-            return {
-                "response": f"Hello {user_context.get('email', 'User')}! I understand you're asking about your analytics data. I'm currently experiencing some technical difficulties accessing the Google Analytics API, but I'm working on resolving this. In the meantime, you can check your analytics directly at https://analytics.google.com. Once the technical issues are resolved, I'll be able to provide detailed insights about your website traffic, popular pages, and performance metrics.",
-                "status": "success"
-            }
+        # Process the query through the AI Orchestrator
+        response = await ai_orchestrator.process_query(
+            user_query=prompt,
+            user_context=user_context
+        )
         
-        # For other queries, try the orchestrator with better error handling
-        try:
-            response = await ai_orchestrator.process_query(
-                user_query=prompt,
-                user_context=user_context
-            )
-            
-            return {
-                "response": response,
-                "status": "success"
-            }
-        except AttributeError as e:
-            logger.error(f"AttributeError in AI orchestrator: {e}")
-            return {
-                "response": f"I'm experiencing some technical difficulties with my AI processing system. The error appears to be related to how I'm handling function calls. For now, I can help you with basic questions, but advanced analytics features are temporarily unavailable. Please try again later or contact support if this persists.",
-                "status": "partial_success"
-            }
+        logger.info(f"AI query processed successfully for user {user_context['email']}")
+        
+        return {
+            "response": response,
+            "status": "success",
+            "timestamp": "2025-07-07T00:00:00Z"
+        }
         
     except Exception as e:
         logger.error(f"Error processing AI query: {e}")
