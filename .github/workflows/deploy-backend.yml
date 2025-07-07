@@ -53,6 +53,7 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
         run: |-
@@ -61,6 +62,7 @@ jobs:
           echo "SECRET_KEY: ${SECRET_KEY:+SET}"
           echo "SUPABASE_URL: ${SUPABASE_URL:+SET}" 
           echo "SUPABASE_KEY: ${SUPABASE_KEY:+SET}"
+          echo "SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:+SET}"
           echo "DATABASE_URL: ${DATABASE_URL:+SET}"
           echo "GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:+SET}"
           echo "🔍 Using workload identity for Google credentials (no GOOGLE_APPLICATION_CREDENTIALS needed)"
@@ -73,7 +75,7 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --project=aterges-ai \
-            --set-env-vars="DEBUG=false,GOOGLE_CLOUD_PROJECT=aterges-ai,GOOGLE_CLOUD_LOCATION=us-central1,CORS_ORIGINS=https://aterges.vercel.app,SECRET_KEY=${SECRET_KEY},SUPABASE_URL=${SUPABASE_URL},SUPABASE_KEY=${SUPABASE_KEY},DATABASE_URL=${DATABASE_URL},GA4_PROPERTY_ID=${GA4_PROPERTY_ID}" \
+            --set-env-vars="DEBUG=false,GOOGLE_CLOUD_PROJECT=aterges-ai,GOOGLE_CLOUD_LOCATION=us-central1,CORS_ORIGINS=https://aterges.vercel.app,SECRET_KEY=${SECRET_KEY},SUPABASE_URL=${SUPABASE_URL},SUPABASE_KEY=${SUPABASE_KEY},SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET},DATABASE_URL=${DATABASE_URL},GA4_PROPERTY_ID=${GA4_PROPERTY_ID}" \
             --memory=1Gi \
             --cpu=1 \
             --timeout=900 \
