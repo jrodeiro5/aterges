@@ -1,4 +1,5 @@
 import jwt
+import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from supabase import create_client, Client
@@ -25,10 +26,28 @@ class AuthService:
         return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     
     def _verify_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verify JWT token."""
+        """Verify JWT token using Supabase JWT secret."""
         try:
-            payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-            return payload
+            # Get the Supabase JWT secret from environment
+            jwt_secret = os.environ.get("SUPABASE_JWT_SECRET")
+            
+            if jwt_secret:
+                # Use Supabase JWT secret for proper verification
+                payload = jwt.decode(
+                    token, 
+                    jwt_secret, 
+                    algorithms=["HS256"],
+                    options={"verify_aud": True, "verify_exp": True},
+                    audience="authenticated"  # Supabase uses "authenticated" as audience
+                )
+                logger.info(f"JWT verified with Supabase secret for user: {payload.get('email')}")
+                return payload
+            else:
+                # Fallback to original method if no Supabase secret
+                logger.warning("No SUPABASE_JWT_SECRET found, using fallback verification")
+                payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+                return payload
+                
         except jwt.PyJWTError as e:
             logger.warning(f"Token verification failed: {e}")
             return None
