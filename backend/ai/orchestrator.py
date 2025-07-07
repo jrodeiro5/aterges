@@ -317,9 +317,6 @@ class AIOrchestrator:
                                 response=result
                             )
                         )
-                                response=result
-                            )
-                        )
                 
                 # Send function results back to the model
                 if function_responses:
