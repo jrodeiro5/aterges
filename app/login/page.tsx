@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mail, Lock } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
 import { useSupabaseAuth } from '@/lib/auth-supabase-fixed';
+import { LoadingLogo } from '@/components/ui/loading-logo';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -101,10 +102,10 @@ export default function LoginPage() {
                 disabled={isLoading || !email || !password}
               >
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Iniciando Sesión...
-                  </>
+                  <div className="flex items-center justify-center gap-2">
+                    <LoadingLogo size="sm" />
+                    <span>Iniciando Sesión...</span>
+                  </div>
                 ) : (
                   'Iniciar Sesión'
                 )}

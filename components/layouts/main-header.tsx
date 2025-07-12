@@ -208,17 +208,15 @@ export function MainHeader({ user, onSidebarToggle, onLogout }: MainHeaderProps)
             <Menu className="h-4 w-4" />
           </Button>
           
-          <Link href="/app/dashboard" className="flex items-center gap-2">
+          <Link href="/app/dashboard" className="flex items-center">
             <Image 
               src="/aterges_logo-removebg-preview.png" 
               alt="Aterges" 
-              width={32} 
+              width={120} 
               height={32} 
-              className="w-8 h-8"
+              className="h-8 w-auto object-contain"
+              priority
             />
-            <span className="font-bold text-lg text-foreground">
-              Aterges
-            </span>
           </Link>
         </div>
 
