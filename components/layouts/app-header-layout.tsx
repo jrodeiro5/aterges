@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { MainHeader } from './main-header';
 import { useSupabaseAuth } from '@/lib/auth-supabase-fixed';
 import { User } from '@/types/chat';
-import { LoadingLogo } from '@/components/ui/loading-logo';
 
 interface AppHeaderLayoutProps {
   children: React.ReactNode;
@@ -46,7 +45,9 @@ export function AppHeaderLayout({ children }: AppHeaderLayoutProps) {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingLogo size="lg" text="Cargando..." />
+        <div className="text-center">
+          <div className="text-muted-foreground font-medium">Cargando...</div>
+        </div>
       </div>
     );
   }

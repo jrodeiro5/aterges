@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Mail, Lock } from 'lucide-react';
 import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
 import { useSupabaseAuth } from '@/lib/auth-supabase-fixed';
-import { LoadingLogo } from '@/components/ui/loading-logo';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -54,7 +53,7 @@ export default function LoginPage() {
   return (
     <PublicLayout>
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-12 px-4">
-        <Card className="w-full max-w-md animate-slide-up">
+        <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Bienvenido de Vuelta</CardTitle>
             <CardDescription>
@@ -102,10 +101,7 @@ export default function LoginPage() {
                 disabled={isLoading || !email || !password}
               >
                 {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <LoadingLogo size="sm" />
-                    <span>Iniciando Sesión...</span>
-                  </div>
+                  'Iniciando Sesión...'
                 ) : (
                   'Iniciar Sesión'
                 )}

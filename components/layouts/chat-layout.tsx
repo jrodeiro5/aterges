@@ -71,11 +71,8 @@ export function ChatLayout({ children }: ChatLayoutProps) {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse flex items-center space-x-2">
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-2xl font-bold">
-            Aterges
-          </span>
-          <span className="text-lg font-medium">Cargando...</span>
+        <div className="text-center">
+          <div className="text-lg font-medium text-muted-foreground">Cargando...</div>
         </div>
       </div>
     );
