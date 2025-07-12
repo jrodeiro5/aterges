@@ -49,7 +49,6 @@ function ConversationItem({
         <div className="flex items-center gap-2">
           <CategoryIcon 
             className={cn("h-4 w-4 flex-shrink-0", categoryConfig.color)} 
-            title={categoryConfig.label}
           />
           <p className="text-sm font-medium leading-tight" title={conversation.title}>
             {truncatedTitle}
