@@ -24,7 +24,7 @@ export function ChatLayout({ children }: ChatLayoutProps) {
   const user: User | null = authUser ? {
     id: authUser.id,
     email: authUser.email || '',
-    name: authUser.user_metadata?.name || authUser.user_metadata?.full_name
+    name: (authUser as any).user_metadata?.name || (authUser as any).user_metadata?.full_name || authUser.email?.split('@')[0] || 'Usuario'
   } : null;
 
   // Use chat hook with user ID
