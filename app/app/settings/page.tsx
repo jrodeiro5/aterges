@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/layouts/app-layout';
+import { ChatLayout } from '@/components/layouts/chat-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -140,25 +140,32 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
+      <ChatLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-pulse text-muted-foreground">Cargando configuración...</div>
         </div>
-      </AppLayout>
+      </ChatLayout>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Configuración de Cuenta</h1>
-          <p className="text-muted-foreground">
-            Gestiona tu perfil, seguridad y configuración de facturación
-          </p>
+    <ChatLayout>
+      <div className="flex-1 flex flex-col">
+        {/* Page Header */}
+        <div className="border-b p-6 bg-background/95">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold">Configuración</h1>
+              <p className="text-muted-foreground text-sm">
+                Gestiona tu cuenta y preferencias del sistema
+              </p>
+            </div>
+          </div>
         </div>
 
+        {/* Page Content */}
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
@@ -542,7 +549,9 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
         </Tabs>
+          </div>
+        </div>
       </div>
-    </AppLayout>
+    </ChatLayout>
   );
 }
