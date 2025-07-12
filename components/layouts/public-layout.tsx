@@ -17,9 +17,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             <Image
               src="/aterges_logo-removebg-preview.png"
               alt="Aterges AI"
-              width={200}
-              height={48}
-              className="h-12 w-auto object-contain"
+              width={280}
+              height={72}
+              className="h-16 w-auto object-contain"
               priority
               style={{ objectPosition: 'left center' }}
             />
@@ -50,9 +50,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               <Image
                 src="/aterges_logo-removebg-preview.png"
                 alt="Aterges AI"
-                width={180}
-                height={48}
-                className="h-12 w-auto opacity-80 object-contain"
+                width={240}
+                height={64}
+                className="h-16 w-auto opacity-80 object-contain"
                 style={{ objectPosition: 'left center' }}
               />
             </div>
