@@ -1,6 +1,8 @@
 // types/chat.ts
 // TypeScript types that match the Supabase database schema
 
+import { MessageSquare, BarChart3, TrendingUp, Settings, FileText, Archive } from 'lucide-react';
+
 export interface User {
   id: string;
   email: string;
@@ -139,37 +141,37 @@ export function dbMessageToMessage(dbMessage: ConversationMessage): Message {
 // Category configuration
 export const CONVERSATION_CATEGORIES: Record<ConversationCategory, {
   label: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }> = {
   general: {
     label: 'General',
-    icon: '💬',
+    icon: MessageSquare,
     color: 'text-gray-600'
   },
   analytics: {
-    label: 'Analytics',
-    icon: '📊',
+    label: 'Analytics', 
+    icon: BarChart3,
     color: 'text-blue-600'
   },
   marketing: {
     label: 'Marketing',
-    icon: '📈',
+    icon: TrendingUp,
     color: 'text-green-600'
   },
   automation: {
     label: 'Automatización',
-    icon: '⚙️',
+    icon: Settings,
     color: 'text-purple-600'
   },
   reports: {
     label: 'Informes',
-    icon: '📋',
+    icon: FileText,
     color: 'text-orange-600'
   },
   archived: {
     label: 'Archivadas',
-    icon: '📦',
+    icon: Archive,
     color: 'text-gray-400'
   }
 };
@@ -188,6 +190,12 @@ export function getDateGroup(dateString: string): DateGroup {
   if (diffInDays <= 7) return 'Semana pasada';
   if (diffInDays <= 30) return 'Mes pasado';
   return 'Más antiguas';
+}
+
+// Title truncation utility
+export function truncateTitle(title: string, maxLength: number = 35): string {
+  if (title.length <= maxLength) return title;
+  return title.slice(0, maxLength).trim() + '...';
 }
 
 // API response types

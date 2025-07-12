@@ -15,7 +15,8 @@ import {
   Conversation, 
   ChatSidebarProps, 
   CONVERSATION_CATEGORIES,
-  getDateGroup 
+  getDateGroup,
+  truncateTitle
 } from '@/types/chat';
 import { cn } from '@/lib/utils';
 
@@ -35,20 +36,23 @@ function ConversationItem({
   onArchive: () => void;
 }) {
   const categoryConfig = CONVERSATION_CATEGORIES[conversation.category];
+  const CategoryIcon = categoryConfig.icon;
+  const truncatedTitle = truncateTitle(conversation.title);
 
   return (
     <div className={cn(
-      "group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer",
+      "group relative flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer",
       "hover:bg-muted/50 transition-colors duration-150",
       isActive ? "bg-muted" : ""
     )}>
       <div className="flex-1 min-w-0" onClick={onSelect}>
         <div className="flex items-center gap-2">
-          <span className="text-sm" title={categoryConfig.label}>
-            {categoryConfig.icon}
-          </span>
-          <p className="text-sm font-medium truncate" title={conversation.title}>
-            {conversation.title}
+          <CategoryIcon 
+            className={cn("h-4 w-4 flex-shrink-0", categoryConfig.color)} 
+            title={categoryConfig.label}
+          />
+          <p className="text-sm font-medium leading-tight" title={conversation.title}>
+            {truncatedTitle}
           </p>
           {conversation.isPinned && (
             <Pin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
@@ -136,6 +140,7 @@ export function ChatSidebar({
         <div className="space-y-2">
           {activeConversations.slice(0, 6).map(conv => {
             const categoryConfig = CONVERSATION_CATEGORIES[conv.category];
+            const CategoryIcon = categoryConfig.icon;
             return (
               <Button
                 key={conv.id}
@@ -148,7 +153,7 @@ export function ChatSidebar({
                 )}
                 title={conv.title}
               >
-                <span className="text-sm">{categoryConfig.icon}</span>
+                <CategoryIcon className="h-4 w-4" />
                 {conv.isPinned && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
                 )}
@@ -163,9 +168,9 @@ export function ChatSidebar({
   return (
     <div className="w-80 h-full border-r bg-background flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-6 border-b">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
             Conversaciones
           </h2>
@@ -174,7 +179,7 @@ export function ChatSidebar({
         {/* New Conversation Button */}
         <Button 
           onClick={onNewConversation}
-          className="w-full justify-start gap-2"
+          className="w-full justify-start gap-2 font-medium"
           variant="outline"
         >
           <Plus className="h-4 w-4" />
@@ -184,11 +189,11 @@ export function ChatSidebar({
 
       {/* Conversations List */}
       <ScrollArea className="flex-1 px-2">
-        <div className="space-y-1 py-2">
+        <div className="space-y-1 py-3">
           {/* Pinned Conversations */}
           {pinnedConversations.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 <Pin className="h-3 w-3" />
                 Fijadas
               </div>
@@ -208,8 +213,8 @@ export function ChatSidebar({
 
           {/* Grouped Conversations by Date */}
           {visibleGroups.map(([dateGroup, convs]) => (
-            <div key={dateGroup} className="mb-4">
-              <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
+            <div key={dateGroup} className="mb-6">
+              <div className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 <Calendar className="h-3 w-3" />
                 {dateGroup}
               </div>
@@ -233,7 +238,7 @@ export function ChatSidebar({
               variant="ghost"
               size="sm"
               onClick={() => setShowAllConversations(true)}
-              className="w-full justify-start text-muted-foreground"
+              className="w-full justify-start text-muted-foreground font-medium mx-2"
             >
               <ChevronDown className="h-4 w-4 mr-2" />
               Ver más conversaciones
@@ -241,9 +246,9 @@ export function ChatSidebar({
           )}
 
           {activeConversations.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No hay conversaciones</p>
+            <div className="text-center py-12 px-4 text-muted-foreground">
+              <MessageSquare className="h-8 w-8 mx-auto mb-3 opacity-50" />
+              <p className="text-sm font-medium mb-1">No hay conversaciones</p>
               <p className="text-xs">Crea una nueva para empezar</p>
             </div>
           )}
