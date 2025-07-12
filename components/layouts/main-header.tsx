@@ -212,9 +212,9 @@ export function MainHeader({ user, onSidebarToggle, onLogout }: MainHeaderProps)
             <Image 
               src="/aterges_logo-removebg-preview.png" 
               alt="Aterges" 
-              width={120} 
-              height={32} 
-              className="h-8 w-auto object-contain"
+              width={140} 
+              height={40} 
+              className="h-10 w-auto object-contain"
               priority
             />
           </Link>

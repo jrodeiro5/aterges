@@ -12,14 +12,14 @@ export function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-24 items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <Image
               src="/aterges_logo-removebg-preview.png"
               alt="Aterges AI"
-              width={320}
-              height={85}
-              className="h-20 w-auto object-contain"
+              width={200}
+              height={48}
+              className="h-12 w-auto object-contain"
               priority
               style={{ objectPosition: 'left center' }}
             />
@@ -50,9 +50,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               <Image
                 src="/aterges_logo-removebg-preview.png"
                 alt="Aterges AI"
-                width={240}
-                height={64}
-                className="h-16 w-auto opacity-80 object-contain"
+                width={180}
+                height={48}
+                className="h-12 w-auto opacity-80 object-contain"
                 style={{ objectPosition: 'left center' }}
               />
             </div>
