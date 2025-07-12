@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
@@ -207,8 +208,15 @@ export function MainHeader({ user, onSidebarToggle, onLogout }: MainHeaderProps)
             <Menu className="h-4 w-4" />
           </Button>
           
-          <Link href="/app/dashboard" className="flex items-center gap-2 font-bold text-lg">
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <Link href="/app/dashboard" className="flex items-center gap-2">
+            <Image 
+              src="/aterges_logo-removebg-preview.png" 
+              alt="Aterges" 
+              width={32} 
+              height={32} 
+              className="w-8 h-8"
+            />
+            <span className="font-bold text-lg text-foreground">
               Aterges
             </span>
           </Link>
