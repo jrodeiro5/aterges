@@ -1,6 +1,6 @@
 "use client"
 
-import { ChatLayout } from '@/components/layouts/chat-layout';
+import { AppHeaderLayout } from '@/components/layouts/app-header-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,14 +49,14 @@ const agents = [
 
 export default function AgentsPage() {
   return (
-    <ChatLayout>
-      <div className="flex-1 flex flex-col">
-        {/* Page Header */}
-        <div className="border-b p-6 bg-background/95">
+    <AppHeaderLayout>
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
+          {/* Page Header */}
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold">Agentes</h1>
-              <p className="text-muted-foreground text-sm">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight">Agentes</h1>
+              <p className="text-muted-foreground">
                 Gestiona y configura tus agentes de IA especializados
               </p>
             </div>
@@ -65,13 +65,9 @@ export default function AgentsPage() {
               Crear Agente
             </Button>
           </div>
-        </div>
 
-        {/* Page Content */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
-            {/* Stats Overview */}
-            <div className="grid gap-4 md:grid-cols-3">
+          {/* Stats Overview */}
+          <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -116,10 +112,10 @@ export default function AgentsPage() {
                   </p>
                 </CardContent>
               </Card>
-            </div>
+          </div>
 
-            {/* Agents Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Agents Grid */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {agents.map((agent, index) => (
                 <Card 
                   key={agent.id}
@@ -201,23 +197,22 @@ export default function AgentsPage() {
                   </Button>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Coming Soon Notice */}
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
-                  <Bot className="h-5 w-5" />
-                  <span>Funcionalidades Avanzadas - Próximamente</span>
-                </CardTitle>
-                <CardDescription className="text-blue-600 dark:text-blue-400">
-                  Estamos desarrollando capacidades avanzadas de entrenamiento y personalización de agentes.
-                </CardDescription>
-              </CardHeader>
-            </Card>
           </div>
+
+          {/* Coming Soon Notice */}
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+                <Bot className="h-5 w-5" />
+                <span>Funcionalidades Avanzadas - Próximamente</span>
+              </CardTitle>
+              <CardDescription className="text-blue-600 dark:text-blue-400">
+                Estamos desarrollando capacidades avanzadas de entrenamiento y personalización de agentes.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
       </div>
-    </ChatLayout>
+    </AppHeaderLayout>
   );
 }

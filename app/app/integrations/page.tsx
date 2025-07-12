@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ChatLayout } from '@/components/layouts/chat-layout';
+import { AppHeaderLayout } from '@/components/layouts/app-header-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -179,37 +179,24 @@ export default function IntegrationsPage() {
   };
 
   return (
-    <ChatLayout>
-      <div className="flex-1 flex flex-col">
-        {/* Page Header */}
-        <div className="border-b p-6 bg-background/95">
+    <AppHeaderLayout>
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
+          {/* Page Header */}
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold">Integraciones</h1>
-              <p className="text-muted-foreground text-sm">
-                Conecta Aterges con tus herramientas favoritas
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight">Integraciones</h1>
+              <p className="text-muted-foreground">
+                Conecta tus propias APIs y servicios para usar el modelo BYOK (Bring Your Own Key)
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Page Content */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <p className="text-muted-foreground">
-              Conecta tus propias APIs y servicios para usar el modelo BYOK (Bring Your Own Key)
-            </p>
-          </div>
-          
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="animate-slide-up">
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva Integración
-              </Button>
-            </DialogTrigger>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="animate-slide-up">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva Integración
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Agregar Nueva Integración</DialogTitle>
@@ -508,9 +495,8 @@ export default function IntegrationsPage() {
             </div>
           </CardContent>
         </Card>
-          </div>
         </div>
       </div>
-    </ChatLayout>
+    </AppHeaderLayout>
   );
 }
