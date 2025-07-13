@@ -275,9 +275,9 @@ export async function GET() {
     const missingFunctions = requiredFunctions.filter(f => !availableFunctions.includes(f))
 
     // Analyze security settings
-    const securityIssues = []
+    const securityIssues: any[] = []
     if (securitySettings) {
-      for (const setting: any of securitySettings) {
+      for (const setting of securitySettings) {
         if (setting.security_risk.includes('HIGH') || setting.security_risk.includes('CRITICAL')) {
           securityIssues.push({
             setting: setting.setting_name,
