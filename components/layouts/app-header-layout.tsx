@@ -28,14 +28,14 @@ export function AppHeaderLayout({ children }: AppHeaderLayoutProps) {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [user, authLoading, router]);
 
   const handleLogout = async () => {
     try {
       await signOut();
-      router.push('/login');
+      router.replace('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -52,9 +52,15 @@ export function AppHeaderLayout({ children }: AppHeaderLayoutProps) {
     );
   }
 
-  // Don't render if no user
+  // Show loading state while redirecting
   if (!user) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-muted-foreground font-medium">Redirigiendo...</div>
+        </div>
+      </div>
+    );
   }
 
   return (

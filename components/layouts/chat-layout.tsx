@@ -45,7 +45,8 @@ export function ChatLayout({ children }: ChatLayoutProps) {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      // Use replace instead of push to avoid history issues
+      router.replace('/login');
     }
   }, [user, authLoading, router]);
 
@@ -53,7 +54,7 @@ export function ChatLayout({ children }: ChatLayoutProps) {
   const handleLogout = async () => {
     try {
       await signOut();
-      router.push('/login');
+      router.replace('/login');
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -67,7 +68,7 @@ export function ChatLayout({ children }: ChatLayoutProps) {
     }
   };
 
-  // Show loading state
+  // Show loading state while auth is loading
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -78,9 +79,15 @@ export function ChatLayout({ children }: ChatLayoutProps) {
     );
   }
 
-  // Don't render if not authenticated
+  // Show loading state while redirecting to login
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium text-muted-foreground">Redirigiendo...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
