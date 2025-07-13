@@ -1,7 +1,7 @@
 // components/ui/loading-logo.tsx
 'use client';
 
-import Image from 'next/image';
+import { AtergesLogoIcon } from '@/components/ui/aterges-logo-icon';
 import { cn } from '@/lib/utils';
 
 interface LoadingLogoProps {
@@ -11,10 +11,10 @@ interface LoadingLogoProps {
 }
 
 export function LoadingLogo({ size = 'md', text, className }: LoadingLogoProps) {
-  const sizeClasses = {
-    sm: 'h-6 w-6',
-    md: 'h-8 w-8', 
-    lg: 'h-12 w-12'
+  const sizeMap = {
+    sm: 16,
+    md: 24, 
+    lg: 32
   };
 
   const textSizeClasses = {
@@ -25,18 +25,12 @@ export function LoadingLogo({ size = 'md', text, className }: LoadingLogoProps) 
 
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center gap-3",
+      "flex flex-col items-center justify-center gap-3 text-foreground",
       className
     )}>
-      <Image
-        src="/aterges_logo_1.svg"
-        alt="Aterges AI"
-        width={48}
-        height={48}
-        className={cn(
-          "object-contain",
-          sizeClasses[size]
-        )}
+      <AtergesLogoIcon
+        size={sizeMap[size]}
+        className="transition-colors"
       />
       {text && (
         <p className={cn(

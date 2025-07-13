@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { AtergesLogoText } from '@/components/ui/aterges-logo-text';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -14,14 +14,10 @@ export function PublicLayout({ children }: PublicLayoutProps) {
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <Image
-              src="/aterges_logo_text.svg"
-              alt="Aterges AI"
-              width={280}
-              height={72}
-              className="h-16 w-auto object-contain"
-              priority
-              style={{ objectPosition: 'left center' }}
+            <AtergesLogoText 
+              width={200} 
+              height={56} 
+              className="h-10 w-auto" 
             />
           </Link>
           
@@ -47,13 +43,10 @@ export function PublicLayout({ children }: PublicLayoutProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex items-center space-x-2">
-              <Image
-                src="/aterges_logo_text.svg"
-                alt="Aterges AI"
-                width={240}
-                height={64}
-                className="h-16 w-auto opacity-80 object-contain"
-                style={{ objectPosition: 'left center' }}
+              <AtergesLogoText 
+                width={180} 
+                height={50} 
+                className="h-10 w-auto opacity-80" 
               />
             </div>
             <p className="text-sm text-muted-foreground text-center">

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import { AtergesLogoIcon } from '@/components/ui/aterges-logo-icon';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
@@ -209,14 +209,7 @@ export function MainHeader({ user, onSidebarToggle, onLogout }: MainHeaderProps)
           </Button>
           
           <Link href="/app/dashboard" className="flex items-center">
-            <Image 
-              src="/aterges_logo_1.svg" 
-              alt="Aterges" 
-              width={48} 
-              height={48} 
-              className="h-8 w-8 object-contain"
-              priority
-            />
+            <AtergesLogoIcon size={24} className="transition-colors" />
           </Link>
         </div>
 
