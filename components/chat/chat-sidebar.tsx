@@ -101,7 +101,8 @@ export function ChatSidebar({
   onPinConversation,
   onDeleteConversation,
   onArchiveConversation,
-  isCollapsed
+  isCollapsed,
+  onClose
 }: ChatSidebarProps) {
   const [showAllConversations, setShowAllConversations] = useState(false);
 
@@ -165,7 +166,27 @@ export function ChatSidebar({
   }
 
   return (
-    <div className="w-80 h-full border-r bg-background flex flex-col">
+    <>
+      {/* Mobile Overlay Backdrop */}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "h-full border-r bg-background flex flex-col transition-all duration-300 ease-in-out",
+        "lg:relative lg:translate-x-0", // Desktop: always relative, always visible
+        isCollapsed 
+          ? "w-16" // Collapsed: narrow width
+          : cn(
+              "w-80", // Expanded: full width
+              "fixed inset-y-0 left-0 z-50 lg:relative", // Mobile: fixed overlay, Desktop: relative
+              "translate-x-0" // Always visible when not collapsed
+            )
+      )}>
       {/* Header */}
       <div className="p-6 border-b">
         <div className="flex items-center justify-between mb-4">
@@ -254,5 +275,6 @@ export function ChatSidebar({
         </div>
       </ScrollArea>
     </div>
+    </>
   );
 }

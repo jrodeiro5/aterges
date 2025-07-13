@@ -86,6 +86,7 @@ export interface ChatSidebarProps {
   onDeleteConversation: (id: string) => void;
   onArchiveConversation: (id: string) => void;
   isCollapsed: boolean;
+  onClose?: () => void; // For mobile overlay closing
 }
 
 export interface MainHeaderProps {

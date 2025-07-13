@@ -65,6 +65,19 @@ export function ChatLayout({ children }: ChatLayoutProps) {
     const conversationId = await createConversation();
     if (conversationId) {
       selectConversation(conversationId);
+      // Auto-close sidebar on mobile after selecting conversation
+      if (window.innerWidth < 1024 && !sidebarCollapsed) {
+        toggleSidebar();
+      }
+    }
+  };
+
+  // Handle conversation selection with mobile auto-close
+  const handleSelectConversation = (conversationId: string) => {
+    selectConversation(conversationId);
+    // Auto-close sidebar on mobile after selecting conversation
+    if (window.innerWidth < 1024 && !sidebarCollapsed) {
+      toggleSidebar();
     }
   };
 
@@ -105,16 +118,21 @@ export function ChatLayout({ children }: ChatLayoutProps) {
         <ChatSidebar
           conversations={conversations}
           currentConversationId={currentConversationId}
-          onSelectConversation={selectConversation}
+          onSelectConversation={handleSelectConversation}
           onNewConversation={handleNewConversation}
           onPinConversation={togglePinConversation}
           onDeleteConversation={deleteConversation}
           onArchiveConversation={archiveConversation}
           isCollapsed={sidebarCollapsed}
+          onClose={toggleSidebar} // Close sidebar on mobile when clicking backdrop
         />
 
         {/* Main Chat Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className={cn(
+          "flex-1 flex flex-col overflow-hidden",
+          "lg:relative", // Desktop: always relative
+          !sidebarCollapsed && "lg:ml-0" // Mobile: no margin, Desktop: no margin when sidebar visible
+        )}>
           {/* Error Display */}
           {chatError && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-2 text-sm">

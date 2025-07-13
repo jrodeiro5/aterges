@@ -21,14 +21,38 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function useChat(userId: string) {
-  const [state, setState] = useState<ChatState>({
+  // Detect mobile screen size for initial sidebar state
+  const [isMobile, setIsMobile] = useState(false);
+  
+  const [state, setState] = useState<ChatState>(() => ({
     conversations: [],
     currentConversationId: null,
     messages: [],
     loading: true,
     error: null,
-    sidebarCollapsed: false
-  });
+    sidebarCollapsed: false // Will be updated by mobile detection
+  }));
+
+  // Mobile detection effect
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024; // lg breakpoint
+      setIsMobile(mobile);
+      
+      // Auto-collapse sidebar on mobile
+      setState(prev => ({
+        ...prev,
+        sidebarCollapsed: mobile
+      }));
+    };
+
+    // Check on mount
+    checkMobile();
+
+    // Check on resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load conversations from Supabase
   const loadConversations = useCallback(async () => {
