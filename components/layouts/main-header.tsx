@@ -210,11 +210,11 @@ export function MainHeader({ user, onSidebarToggle, onLogout }: MainHeaderProps)
           
           <Link href="/app/dashboard" className="flex items-center">
             <Image 
-              src="/aterges_logo-removebg-preview.png" 
+              src="/aterges_logo_1.svg" 
               alt="Aterges" 
-              width={180} 
+              width={48} 
               height={48} 
-              className="h-12 w-auto object-contain"
+              className="h-8 w-8 object-contain"
               priority
             />
           </Link>

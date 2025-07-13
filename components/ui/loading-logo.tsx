@@ -29,7 +29,7 @@ export function LoadingLogo({ size = 'md', text, className }: LoadingLogoProps) 
       className
     )}>
       <Image
-        src="/aterges_logo-removebg-preview.png"
+        src="/aterges_logo_1.svg"
         alt="Aterges AI"
         width={48}
         height={48}

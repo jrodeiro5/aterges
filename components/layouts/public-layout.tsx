@@ -15,7 +15,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <Image
-              src="/aterges_logo-removebg-preview.png"
+              src="/aterges_logo_text.svg"
               alt="Aterges AI"
               width={280}
               height={72}
@@ -48,7 +48,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex items-center space-x-2">
               <Image
-                src="/aterges_logo-removebg-preview.png"
+                src="/aterges_logo_text.svg"
                 alt="Aterges AI"
                 width={240}
                 height={64}
