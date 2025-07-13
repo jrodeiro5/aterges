@@ -33,9 +33,10 @@ async function getUserFromAuth(request: NextRequest) {
 // GET /api/integrations/[id] - Get specific integration details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromAuth(request)
 
     const { data: integration, error } = await supabase
@@ -52,7 +53,7 @@ export async function GET(
         created_at,
         updated_at
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single()
 
@@ -73,9 +74,10 @@ export async function GET(
 // PUT /api/integrations/[id] - Update integration
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromAuth(request)
     const body = await request.json()
     const { name, credentials, config, is_active } = body
@@ -83,7 +85,7 @@ export async function PUT(
     // If credentials are being updated, use the secure vault function
     if (credentials) {
       const { error } = await supabase.rpc('update_integration_credentials', {
-        p_integration_id: params.id,
+        p_integration_id: id,
         p_credentials: credentials
       })
 
@@ -105,7 +107,7 @@ export async function PUT(
       const { error } = await supabase
         .from('integrations')
         .update(updateData)
-        .eq('id', params.id)
+        .eq('id', id)
         .eq('user_id', user.id)
 
       if (error) {
@@ -129,14 +131,15 @@ export async function PUT(
 // DELETE /api/integrations/[id] - Delete integration and its vault secrets
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromAuth(request)
 
     // Delete integration and associated vault secrets
     const { data, error } = await supabase.rpc('delete_integration_with_vault', {
-      p_integration_id: params.id
+      p_integration_id: id
     })
 
     if (error) {

@@ -33,16 +33,17 @@ async function getUserFromAuth(request: NextRequest) {
 // POST /api/integrations/[id]/test - Test integration connectivity
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getUserFromAuth(request)
 
     // Get integration details
     const { data: integration, error: integrationError } = await supabase
       .from('integrations')
       .select('id, name, type, status')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single()
 
@@ -52,7 +53,7 @@ export async function POST(
 
     // Get credentials securely from vault
     const { data: credentials, error: credentialsError } = await supabase.rpc('get_integration_credentials', {
-      p_integration_id: params.id
+      p_integration_id: id
     })
 
     if (credentialsError || !credentials) {
@@ -95,7 +96,7 @@ export async function POST(
 
     // Update integration status based on test result
     await supabase.rpc('update_integration_status', {
-      p_integration_id: params.id,
+      p_integration_id: id,
       p_status: testResult.success ? 'connected' : 'error',
       p_error_message: testResult.success ? null : testResult.message
     })
