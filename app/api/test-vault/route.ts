@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Could not check security settings:', securityError.message)
     } else {
       console.log('✅ Security settings checked')
-      securitySettings?.forEach(setting => {
+      securitySettings?.forEach((setting: any) => {
         console.log(`  ${setting.setting_name}: ${setting.current_value} (Risk: ${setting.security_risk})`)
       })
     }
@@ -277,7 +277,7 @@ export async function GET() {
     // Analyze security settings
     const securityIssues = []
     if (securitySettings) {
-      for (const setting of securitySettings) {
+      for (const setting: any of securitySettings) {
         if (setting.security_risk.includes('HIGH') || setting.security_risk.includes('CRITICAL')) {
           securityIssues.push({
             setting: setting.setting_name,
