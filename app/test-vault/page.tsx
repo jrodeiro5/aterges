@@ -217,7 +217,7 @@ export default function TestVaultPage() {
           <CardContent className="space-y-4">
             <Button 
               onClick={runVaultTest} 
-              disabled={isRunningTest || (healthCheck && !healthCheck.ready)}
+              disabled={isRunningTest || (healthCheck ? !healthCheck.ready : false)}
               className="w-full"
               size="lg"
             >
